@@ -1,0 +1,116 @@
+import SwiftUI
+
+struct EmptySearchView: View {
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "person.crop.circle.badge.questionmark")
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundStyle(Color.secondaryText)
+
+            Text("No matching figures")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Color.primaryText)
+
+            Text("Try searching by name, role, era, or lifespan.")
+                .font(.caption2)
+                .foregroundStyle(Color.secondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 28)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 5))
+    }
+}
+
+struct CategoryTile: View {
+    let title: String
+    let systemImage: String
+    let color: Color
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.system(size: 25, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 62, height: 62)
+                .background(color)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            Text(title)
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(Color.primaryText)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+    }
+}
+
+struct CategoryListRow: View {
+    let icon: String
+    let title: String
+    let detail: String
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(Color.tealButton)
+                .frame(width: 44, height: 44)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.primaryText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(Color.secondaryText)
+            }
+
+            Spacer()
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 3))
+        .overlay(
+            RoundedRectangle(cornerRadius: 3)
+                .stroke(Color.black.opacity(0.08), lineWidth: 1)
+        )
+    }
+}
+
+struct CompareCard: View {
+    let figure: HistoricalFigure
+    let tint: Color
+
+    var body: some View {
+        HStack(spacing: 12) {
+            PortraitImage(imageName: figure.imageName)
+                .frame(width: 58, height: 58)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(figure.name)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Color.primaryText)
+                    .lineLimit(1)
+                Text(figure.era)
+                    .font(.caption2)
+                    .foregroundStyle(Color.secondaryText)
+                Text(figure.summary)
+                    .font(.caption2)
+                    .foregroundStyle(Color.secondaryText)
+                    .lineLimit(2)
+            }
+
+            Spacer()
+        }
+        .padding(12)
+        .background(tint)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}

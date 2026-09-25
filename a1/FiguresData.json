@@ -1,0 +1,225 @@
+{
+  "figures": [
+    
+    {
+      "id": "da-vinci",
+      "name": "Leonardo da Vinci",
+      "era": "1400s",
+      "role": "Polymath",
+      "period": "Renaissance",
+        "periodRange": "15th–16th century",
+      "birthDate": "1452-04-15",
+      "deathDate": "1519-05-02",
+      "accent": "fern",
+      "imageName": "da-vinci",
+      "flag": "🇮🇹",
+      "summary": "Artist, inventor, scientist, polymath, and one of the defining minds of the Renaissance.",
+      "contemporaries": ["mary-tudor"]
+    },
+    
+    {
+      "id": "mary-tudor",
+      "name": "Mary Tudor",
+      "era": "1500s",
+      "role": "Monarch",
+      "birthDate": "1516-02-18",
+      "deathDate": "1558-11-17",
+      "accent": "ochre",
+      "imageName": "mary-tudor",
+      "flag": "🇬🇧",
+      "summary": "Queen of England and Ireland",
+      "contemporaries": ["da-vinci"]
+    },
+    {
+      "id": "ada-lovelace",
+      "name": "Ada Lovelace",
+      "era": "1800s",
+      "role": "Scientist",
+      "birthDate": "1815-12-10",
+      "deathDate": "1852-11-27",
+      "accent": "midnight",
+      "imageName": "ada-lovelace",
+      "flag": "🇬🇧",
+      "summary": "Known for early work on Charles Babbage's Analytical Engine and ideas about computing.",
+      "contemporaries": []
+    },
+    
+    {
+      "id": "vincent-van-gogh",
+      "name": "Vincent van Gogh",
+      "era": "1800s",
+      "role": "Artist",
+      "birthDate": "1853-03-30",
+      "deathDate": "1890-07-29",
+      "accent": "midnight",
+      "imageName": "vincent-van-gogh",
+      "flag": "🇳🇱",
+      "summary": "Dutch Post-Impressionist painter who is among the most famous and influential figures in the history of Western art.",
+      "contemporaries": ["sun-yatsen"]
+    },
+    
+    {
+      "id": "sun-yatsen",
+      "name": "Sun Yatsen",
+      "era": "1800s",
+      "role": "Politician",
+      "birthDate": "1866-11-12",
+      "deathDate": "1925-03-12",
+      "accent": "midnight",
+      "imageName": "sun-yatsen",
+      "flag": "🇹🇼",
+      "summary": "Physician and former President of the Republic of China",
+      "contemporaries": ["vincent-van-gogh", "mao-zedong", "puyi"]
+    },
+    
+    {
+      "id": "mao-zedong",
+      "name": "Mao Zedong",
+      "era": "1800s",
+      "role": "Politician",
+      "birthDate": "1893-12-26",
+      "deathDate": "1976-09-09",
+      "accent": "midnight",
+      "imageName": "mao-zedong",
+      "flag": "🇨🇳",
+      "summary": "Former Chairman of the Chinese Communist Party",
+      "contemporaries": ["sun-yatsen", "puyi", "margaret-thatcher", "queen-elizabeth", "princess-margaret", "bruce-lee", "charles-iii", "michael-jackson", "princess-diana"]
+    },
+    
+    {
+      "id": "puyi",
+      "name": "Puyi",
+      "era": "1900s",
+      "role": "Monarch",
+      "birthDate": "1906-02-07",
+      "deathDate": "1967-10-17",
+      "accent": "midnight",
+      "imageName": "puyi",
+      "flag": "🇨🇳",
+      "summary": "The last emperor of the Qing Dynasty, later as the Kangde Emperor of Manchukuo, a Japanese puppet state during World War II.",
+      "contemporaries": ["sun-yatsen", "mao-zedong", "margaret-thatcher", "queen-elizabeth", "princess-margaret", "bruce-lee", "charles-iii", "michael-jackson", "princess-diana"]
+    },
+   
+    {
+      "id": "margaret-thatcher",
+      "name": "Margaret Thatcher",
+      "era": "1900s",
+      "role": "Politician",
+      "birthDate": "1925-10-13",
+      "deathDate": "2013-04-08",
+      "accent": "coral",
+      "imageName": "margaret-thatcher",
+      "flag": "🇬🇧",
+      "summary": "Stateswoman and former Prime Minister of the United Kingdom",
+      "contemporaries": ["mao-zedong", "puyi", "queen-elizabeth", "princess-margaret", "bruce-lee", "charles-iii", "michael-jackson", "princess-diana"]
+    },
+    {
+      "id": "queen-elizabeth",
+      "name": "Elizabeth II",
+      "era": "1900s",
+      "role": "Monarch",
+      "birthDate": "1926-04-21",
+      "deathDate": "2022-09-08",
+      "accent": "emerald",
+      "imageName": "elizabeth-II",
+      "flag": "🇬🇧",
+      "summary": "Former Queen of the United Kingdom",
+      "contemporaries": ["mao-zedong", "puyi", "margaret-thatcher", "princess-margaret", "bruce-lee", "charles-iii", "michael-jackson", "princess-diana"]
+    },
+    {
+      "id": "princess-margaret",
+      "name": "Princess Margaret",
+      "era": "1900s",
+      "role": "Monarch",
+      "birthDate": "1930-08-21",
+      "deathDate": "2002-02-09",
+      "accent": "emerald",
+      "imageName": "princess-margaret",
+      "flag": "🇬🇧",
+      "summary": "A prominent member of the British royal family known for public service and cultural influence.",
+      "contemporaries": ["mao-zedong", "puyi", "margaret-thatcher", "queen-elizabeth", "bruce-lee", "charles-iii", "michael-jackson", "princess-diana"]
+    },
+    
+    {
+      "id": "bruce-lee",
+      "name": "Bruce Lee",
+      "era": "1900s",
+      "role": "Actor",
+      "birthDate": "1940-11-27",
+      "deathDate": "1973-07-20",
+      "accent": "emerald",
+      "imageName": "bruce-lee",
+      "flag": "🇭🇰",
+      "summary": "Hong Kong-American martial artist and actor",
+      "contemporaries": ["mao-zedong", "puyi", "margaret-thatcher", "queen-elizabeth", "princess-margaret", "charles-iii", "michael-jackson", "princess-diana"]
+    },
+    
+    {
+      "id": "charles-iii",
+      "name": "Charles III",
+      "era": "1900s",
+      "role": "Monarch",
+      "birthDate": "1948-11-14",
+      "deathDate": null,
+      "accent": "emerald",
+      "imageName": "charles-iii",
+      "flag": "🇬🇧",
+      "summary": "King of the United Kingdom",
+      "contemporaries": ["mao-zedong", "puyi", "margaret-thatcher", "queen-elizabeth", "princess-margaret", "bruce-lee", "michael-jackson", "princess-diana"]
+    },
+    
+    {
+      "id": "michael-jackson",
+      "name": "Michael Jackson",
+      "era": "Performer",
+      "role": "Artist",
+      "birthDate": "1958-08-29",
+      "deathDate": "2009-06-25",
+      "accent": "smoke",
+      "imageName": "mj",
+      "flag": "🇺🇸",
+      "summary": "A globally influential performer whose music, dance, and videos reshaped popular culture.",
+      "contemporaries": ["mao-zedong", "puyi", "margaret-thatcher", "queen-elizabeth", "princess-margaret", "bruce-lee", "charles-iii", "princess-diana"]
+    },
+    
+    {
+      "id": "princess-diana",
+      "name": "Diana, Princess of Wales",
+      "era": "1900s",
+      "role": "Monarch",
+      "birthDate": "1961-07-01",
+      "deathDate": "1997-08-31",
+      "accent": "emerald",
+      "imageName": "princess-diana",
+      "flag": "🇬🇧",
+      "summary": "Former Princess of Wales",
+      "contemporaries": ["mao-zedong", "puyi", "margaret-thatcher", "queen-elizabeth", "princess-margaret", "bruce-lee", "charles-iii", "michael-jackson"]
+    }
+  ],
+  "regions": [
+    {
+      "id": "england",
+      "flag": "🇬🇧",
+      "name": "England",
+      "count": "4 figures"
+    },
+    {
+      "id": "italy",
+      "flag": "🇮🇹",
+      "name": "Italy",
+      "count": "1 figure"
+    },
+    {
+      "id": "united-states",
+      "flag": "🇺🇸",
+      "name": "United States",
+      "count": "1 figure"
+    },
+    {
+      "id": "global",
+      "flag": "🌍",
+      "name": "Global",
+      "count": "6 figures"
+    }
+  ]
+}
