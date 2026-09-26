@@ -1,6 +1,6 @@
 //
-//  a1App.swift
-//  a1
+//  DiscoverContemporariesApp.swift
+//  DiscoverContemporaries
 //
 //  Created by Nina Chen on 31/8/2026.
 //
@@ -8,8 +8,9 @@
 import CoreText
 import SwiftUI
 
+// app entry point
 @main
-struct a1App: App {
+struct DiscoverContemporariesApp: App {
     init() {
         FontRegistrar.registerFonts(in: "Alegreya_Sans_SC")
     }

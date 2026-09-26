@@ -1,5 +1,7 @@
 import Foundation
 
+// view model is the brain of one screen
+
 final class FiguresController {
     static let shared = FiguresController()
 

@@ -12,9 +12,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		0101326F304563D1006A2CF1 /* a1 */ = {
+		0101326F304563D1006A2CF1 /* DiscoverContemporaries */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = a1;
+			path = DiscoverContemporaries;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -33,7 +33,7 @@
 		01013264304563D1006A2CF1 = {
 			isa = PBXGroup;
 			children = (
-				0101326F304563D1006A2CF1 /* a1 */,
+				0101326F304563D1006A2CF1 /* DiscoverContemporaries */,
 				0101326E304563D1006A2CF1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -69,7 +69,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				0101326F304563D1006A2CF1 /* a1 */,
+				0101326F304563D1006A2CF1 /* DiscoverContemporaries */,
 			);
 			name = a1;
 			packageProductDependencies = (
@@ -277,7 +277,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.a1;
+				PRODUCT_BUNDLE_IDENTIFIER = a2.DiscoverContemporaries;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -308,7 +308,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.a1;
+				PRODUCT_BUNDLE_IDENTIFIER = a2.DiscoverContemporaries;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
