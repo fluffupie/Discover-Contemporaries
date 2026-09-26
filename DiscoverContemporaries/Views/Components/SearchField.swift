@@ -14,6 +14,7 @@ struct SearchField: View {
                 .foregroundStyle(Color.primaryText)
                 .textInputAutocapitalization(.words)
                 .autocorrectionDisabled()
+                .submitLabel(.search)
 
             if !searchText.isEmpty {
                 Button {

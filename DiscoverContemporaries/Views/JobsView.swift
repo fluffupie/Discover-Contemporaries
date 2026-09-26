@@ -1,23 +1,14 @@
 import SwiftUI
 
 struct JobsView: View {
-    private let controller = FiguresController.shared
-
-    private var jobs: [(name: String, count: Int)] {
-        Dictionary(grouping: controller.figures, by: \.role)
-            .map { (name: $0.key, count: $0.value.count) }
-            .sorted { $0.name < $1.name }
-    }
-
     var body: some View {
         VStack(spacing: 16) {
-            ForEach(jobs, id: \.name) { job in
-                CategoryListRow(
-                    icon: "briefcase.fill",
-                    title: job.name,
-                    detail: "\(job.count) \(job.count == 1 ? "figure" : "figures")"
-                )
-            }
+            // TODO: Replace with Wikidata occupation facets when figure detail fetching exists.
+            MigrationPlaceholderRow(
+                icon: "briefcase.fill",
+                title: "Jobs unavailable",
+                detail: "Wikidata occupation facets are not implemented yet."
+            )
 
             Spacer()
         }

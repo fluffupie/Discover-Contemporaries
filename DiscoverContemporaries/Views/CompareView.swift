@@ -1,18 +1,17 @@
 import SwiftUI
 
 struct CompareView: View {
-    private let controller = FiguresController.shared
-
     var body: some View {
-        let firstFigure = controller.figures.first ?? .placeholder
-        let secondFigure = controller.figures.dropFirst(3).first ?? controller.figures.dropFirst().first ?? firstFigure
-
         VStack(spacing: 16) {
+            // TODO: Restore comparison once full Wikidata figure detail fetching exists.
             VStack(spacing: 12) {
-                CompareCard(figure: firstFigure, tint: .rosePanel)
-                CompareCard(figure: secondFigure, tint: .mintPanel)
+                MigrationPlaceholderRow(
+                    icon: "person.2.fill",
+                    title: "Comparison unavailable",
+                    detail: "Full Wikidata figure details are not implemented yet."
+                )
 
-                Text("They share a strong relationship to public change and leadership.")
+                Text("Search results currently show Wikidata matches only.")
                     .font(.caption)
                     .foregroundStyle(Color.secondaryText)
                     .multilineTextAlignment(.center)
@@ -23,6 +22,7 @@ struct CompareView: View {
             .background(Color.white)
             .clipShape(RoundedRectangle(cornerRadius: 6))
         }
+        .padding(.horizontal, 24)
         .background(Color.appBackground)
         .h1NavigationTitle("Compare")
     }

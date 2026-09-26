@@ -1,23 +1,14 @@
 import SwiftUI
 
 struct EraView: View {
-    private let controller = FiguresController.shared
-
-    private var eras: [(name: String, count: Int)] {
-        Dictionary(grouping: controller.figures, by: \.era)
-            .map { (name: $0.key, count: $0.value.count) }
-            .sorted { $0.name < $1.name }
-    }
-
     var body: some View {
         VStack(spacing: 16) {
-            ForEach(eras, id: \.name) { era in
-                CategoryListRow(
-                    icon: "calendar",
-                    title: era.name,
-                    detail: "\(era.count) \(era.count == 1 ? "figure" : "figures")"
-                )
-            }
+            // TODO: Replace with Wikidata-derived era grouping when full figure dates are loaded.
+            MigrationPlaceholderRow(
+                icon: "calendar",
+                title: "Eras unavailable",
+                detail: "Wikidata era grouping is not implemented yet."
+            )
 
             Spacer()
         }

@@ -3,12 +3,7 @@ import SwiftUI
 struct ResultView: View {
     let figure: HistoricalFigure
 
-    private let controller = FiguresController.shared
-
     var body: some View {
-        let margaretThatcher = controller.figure(withID: "margaret-thatcher", fallback: figure)
-        let daVinci = controller.figure(withID: "da-vinci", fallback: figure)
-
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 18) {
                 Text("Result")
@@ -24,7 +19,7 @@ struct ResultView: View {
                         .scaledToFit()
                         .frame(width: 220, height: 220)
                         .offset(x: 65, y: -40)
-                    PortraitImage(imageName: figure.imageName)
+                    PortraitImage(imageURL: figure.imageURL)
                         .frame(width: 138, height: 138)
                         .clipShape(RoundedRectangle(cornerRadius: 6))
                         .shadow(color: .black.opacity(0.2), radius: 12, y: 7)
@@ -36,7 +31,8 @@ struct ResultView: View {
                     ZStack {
                         Rectangle()
                             .foregroundColor(.clear)
-                            .frame(width: .infinity, height: 35)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 35)
                             .background(
                                 LinearGradient(
                                     colors: [
@@ -49,26 +45,21 @@ struct ResultView: View {
                             )
                             .cornerRadius(3)
                             .offset(x: 0, y: -50)
-                        HStack(spacing: 8) {
-                            Text(figure.name)
-                                .font(.h1PageTitle)
-                                            .tracking(1.1)
-                                .foregroundStyle(.white)
-
-                            Text(figure.flag)
-                                .font(.system(size: 18))
-                        }
-                        .offset(x: 0, y: -50)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 5)
+                        Text(figure.name)
+                            .font(.h1PageTitle)
+                            .tracking(1.1)
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                            .offset(x: 0, y: -50)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 5)
                     }
-                    
-                    Text(figure.summary)
+
+                    Text(figure.description ?? "No description available yet.")
                         .font(Font.custom("Inter", size: 14).weight(.medium))
                         .foregroundColor(.black)
                         .offset(x: 5, y: -30)
-                    
-                    
 
                     HStack {
                         Text(figure.lifespan)
@@ -79,50 +70,31 @@ struct ResultView: View {
                             .frame(width: 5, height: 5)
                             .background(Color(red: 0.62, green: 0.11, blue: 0.14))
                             .offset(x: 15, y: -35)
-                        Text("87 years")
+                        Text(figure.ageText)
                             .font(Font.custom("Inter", size: 14).weight(.medium))
                             .foregroundColor(.black)
                             .offset(x: 20, y: -35)
                     }
-            
-                        
-                       
-                        Text(figure.role)
-                            .font(Font.custom("Inter", size: 14).weight(.medium))
-                            .foregroundColor(.black)
-                            .offset(x: 25, y: -30)
-                 
+
+                    Text(figure.region ?? "Historical figure")
+                        .font(Font.custom("Inter", size: 14).weight(.medium))
+                        .foregroundColor(.black)
+                        .offset(x: 25, y: -30)
 
                     Text("Contemporaries")
                         .font(.h1SectionTitle)
-                            .tracking(1.1)
+                        .tracking(1.1)
                         .foregroundStyle(Color.tealButton)
                 }
 
-                NavigationLink {
-                    LifespanCompareView(firstFigure: margaretThatcher, secondFigure: daVinci)
-                } label: {
-                    HStack(spacing: 10) {
-                        PortraitImage(imageName: daVinci.imageName)
-                            .frame(width: 50, height: 50)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(daVinci.name)
-                                .foregroundStyle(Color.primaryText)
-                        }
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(Color.secondaryText)
-                    }
-                    .padding(10)
+                // TODO: Populate this from Wikidata lifespan data once contemporaries discovery is implemented.
+                Text("Contemporaries discovery is not implemented for Wikidata figures yet.")
+                    .font(.caption)
+                    .foregroundStyle(Color.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
                     .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
-                }
-                .buttonStyle(.plain)
 
                 NavigationLink {
                     ContemporariesView(figure: figure)

@@ -3,12 +3,7 @@ import SwiftUI
 struct ProfileView: View {
     let figure: HistoricalFigure
 
-    private let controller = FiguresController.shared
-
     var body: some View {
-        let contemporaryFigures = controller.contemporaries(for: figure)
-        let featuredContemporary = contemporaryFigures.first
-
         ScrollView(showsIndicators: false) {
             VStack(spacing: 18) {
                 ZStack {
@@ -17,7 +12,8 @@ struct ProfileView: View {
                         .scaledToFit()
                         .frame(width: 230, height: 230)
                         .offset(y: -25)
-                    PortraitImage(imageName: figure.imageName)
+
+                    PortraitImage(imageURL: figure.imageURL)
                         .frame(width: 140, height: 140)
                         .clipShape(RoundedRectangle(cornerRadius: 6))
                         .shadow(color: .black.opacity(0.2), radius: 12, y: 7)
@@ -28,8 +24,8 @@ struct ProfileView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     FigureIdentityBanner(figure: figure)
                         .offset(y: -50)
-                    
-                    Text(figure.summary)
+
+                    Text(figure.description ?? "No description available yet.")
                         .font(.system(.body, design: .serif))
                         .foregroundColor(.black)
                         .offset(x: 5, y: -45)
@@ -49,51 +45,26 @@ struct ProfileView: View {
                             .foregroundColor(.black)
                             .offset(x: 20, y: -30)
                     }
-                    RolePill(role: figure.role)
+
+                    RolePill(label: figure.region ?? "Historical figure")
                         .frame(maxWidth: .infinity, alignment: .center)
                         .offset(y: -30)
 
                     Text("Contemporaries")
                         .font(.h1SectionTitle)
-                            .tracking(1.1)
-                            .foregroundColor(.emerald)
+                        .tracking(1.1)
+                        .foregroundColor(.emerald)
                         .offset(x: 5)
                 }
 
-                if let featuredContemporary {
-                    NavigationLink {
-                        LifespanCompareView(firstFigure: figure, secondFigure: featuredContemporary)
-                    } label: {
-                        HStack(spacing: 10) {
-                            PortraitImage(imageName: featuredContemporary.imageName)
-                                .frame(width: 50, height: 50)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
-
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(featuredContemporary.name)
-                                    .foregroundStyle(Color.primaryText)
-                            }
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(Color.secondaryText)
-                        }
-                        .padding(10)
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                    }
-                    .buttonStyle(.plain)
-                } else {
-                    Text("No overlapping lifespans in the current data.")
-                        .font(.caption)
-                        .foregroundStyle(Color.secondaryText)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12)
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                }
+                // TODO: Populate this from Wikidata lifespan data once contemporaries discovery is implemented.
+                Text("Contemporaries discovery is not implemented for Wikidata figures yet.")
+                    .font(.caption)
+                    .foregroundStyle(Color.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
 
                 NavigationLink {
                     ContemporariesView(figure: figure)
@@ -125,18 +96,22 @@ private struct FigureIdentityBanner: View {
                 .frame(width: 3)
                 .clipShape(Capsule())
 
-            Text(figure.name.uppercased())
-                .font(.system(size: 20, weight: .regular, design: .serif))
-                .tracking(1.2)
-                .foregroundStyle(Color.primaryText)
-                .lineLimit(2)
-                .minimumScaleFactor(0.82)
-                .multilineTextAlignment(.leading)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(figure.name.uppercased())
+                    .font(.system(size: 20, weight: .regular, design: .serif))
+                    .tracking(1.2)
+                    .foregroundStyle(Color.primaryText)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.82)
+                    .multilineTextAlignment(.leading)
 
-            Text(figure.flag)
-                .font(.system(size: 26))
-                .lineLimit(1)
-                .accessibilityLabel("Country flag")
+                if let region = figure.region {
+                    Text(region)
+                        .font(.caption)
+                        .foregroundStyle(Color.secondaryText)
+                        .lineLimit(1)
+                }
+            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 14)
@@ -152,7 +127,7 @@ private struct FigureIdentityBanner: View {
 }
 
 private struct RolePill: View {
-    let role: String
+    let label: String
 
     var body: some View {
         HStack(spacing: 7) {
@@ -160,7 +135,7 @@ private struct RolePill: View {
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(Color.ochre.opacity(0.78))
 
-            Text(role.uppercased())
+            Text(label.uppercased())
                 .font(Font.custom("AlegreyaSansSC-Regular", size: 15).weight(.medium))
                 .tracking(1.1)
                 .foregroundStyle(Color.ochre)
@@ -179,4 +154,3 @@ private struct RolePill: View {
         .accessibilityElement(children: .combine)
     }
 }
-

@@ -5,7 +5,7 @@ struct HorizontalFigureRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            PortraitImage(imageName: figure.imageName)
+            PortraitImage(imageURL: figure.imageURL)
                 .frame(width: 74, height: 74)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
 
@@ -14,10 +14,10 @@ struct HorizontalFigureRow: View {
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(Color.primaryText)
                     .lineLimit(1)
-                Text(figure.era)
+                Text(figure.lifespan)
                     .font(.caption2)
                     .foregroundStyle(Color.secondaryText)
-                Text(figure.summary)
+                Text(figure.description ?? "No description available")
                     .font(.caption2)
                     .foregroundStyle(Color.secondaryText)
                     .lineLimit(2)

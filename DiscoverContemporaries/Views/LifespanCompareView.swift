@@ -101,23 +101,14 @@ private struct CompareProfilePanel: View {
     let usesSoftGradientBackground: Bool
     let showsGlowBadge: Bool
 
-    private var countryName: String {
-        switch figure.flag {
-        case "🇬🇧":
-            return "England"
-        case "🇮🇹":
-            return "Italy"
-        case "🇺🇸":
-            return "United States"
-        default:
-            return "Global"
-        }
+    private var regionName: String {
+        figure.region ?? "Global"
     }
 
     var body: some View {
         ZStack(alignment: .topLeading) {
             HStack(spacing: 26) {
-                PortraitImage(imageName: figure.imageName)
+                PortraitImage(imageURL: figure.imageURL)
                     .frame(width: 120, height: 120)
                     .clipped()
 
@@ -127,7 +118,7 @@ private struct CompareProfilePanel: View {
                         .foregroundStyle(.white.opacity(0.86))
 
                     ProfilePill(systemImage: "gift.fill", text: range?.yearText ?? figure.lifespan)
-                    ProfilePill(systemImage: "mappin.circle.fill", text: countryName.uppercased())
+                    ProfilePill(systemImage: "mappin.circle.fill", text: regionName.uppercased())
 
                     HStack(alignment: .top, spacing: 8) {
                         Rectangle()
@@ -338,20 +329,12 @@ private struct LifeRange {
         "\(startYear) - \(endYear)"
     }
 
-    init?(birthDate: String, deathDate: String?) {
-        guard let startDate = Self.formatter.date(from: birthDate) else {
+    init?(birthDate: Date?, deathDate: Date?) {
+        guard let startDate = birthDate else {
             return nil
         }
 
-        let endDate: Date
-        if let deathDate {
-            guard let parsedDeathDate = Self.formatter.date(from: deathDate) else {
-                return nil
-            }
-            endDate = parsedDeathDate
-        } else {
-            endDate = Date()
-        }
+        let endDate = deathDate ?? Date()
 
         self.startDate = startDate
         self.endDate = endDate

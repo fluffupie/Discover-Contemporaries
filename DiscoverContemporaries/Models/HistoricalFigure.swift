@@ -10,11 +10,8 @@ struct HistoricalFigure: Decodable, Identifiable {
     //    let role: String
     let birthDate: Date?
     let deathDate: Date?
-    let country: String?
+    let region: String?
     let imageURL: URL?
-    //    let flag: String
-    //    let summary: String
-    //    let contemporaries: [String]
 
     var lifespan: String {
         guard let birthDate else {
@@ -53,7 +50,7 @@ struct HistoricalFigure: Decodable, Identifiable {
     }
 
     func matches(_ query: String) -> Bool {
-        [name, lifespan, description ?? "", country ?? ""]
+        [name, lifespan, description ?? "", region ?? ""]
             .joined(separator: " ")
             .localizedCaseInsensitiveContains(query)
     }

@@ -1,37 +1,45 @@
 import SwiftUI
 
 struct HomeView: View {
-    @StateObject var model = FigureViewModel()
 
-    private let controller = FigureViewModel.shared
-
-    private var displayedFigures: [HistoricalFigure] {
-        controller.displayedFigures(for: searchText)
-    }
+    @StateObject private var model = FigureViewModel()
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 20) {
                 HeaderView()
 
-                SearchField(searchText: $searchText)
+                SearchField(searchText: $model.searchText).onSubmit {
+                    model.searchFigures()
+                }
 
-                Text(searchText.isEmpty ? "Explore figures" : "Search results")
-                    .font(.h1SectionTitle)
-                    .tracking(1.1)
-                    .foregroundStyle(Color.primaryText)
+                Text(
+                    model.searchText.isEmpty
+                        ? "Explore figures"
+                        : "Search results"
+                )
+                .font(.h1SectionTitle)
+                .tracking(1.1)
+                .foregroundStyle(Color.primaryText)
 
-                if displayedFigures.isEmpty {
-                    EmptySearchView()
-                } else {
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 14), count: 2), spacing: 14) {
-                        ForEach(displayedFigures) { figure in
-                            NavigationLink {
-                                ProfileView(figure: figure)
-                            } label: {
-                                FigureCard(figure: figure, height: 132)
-                            }
-                            .buttonStyle(.plain)
+                if model.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 30)
+
+                } else if let errorMessage = model.errorMessage {
+                    Text(errorMessage)
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.secondaryText)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 30)
+
+                } else if !model.searchResults.isEmpty {
+
+                    VStack(spacing: 12) {
+
+                        ForEach(model.searchResults) { result in
+                            WikidataSearchResultRow(result: result)
                         }
                     }
                 }
@@ -47,10 +55,6 @@ struct HomeView: View {
 private struct HeaderView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("HOME")
-                .font(.system(size: 14, weight: .semibold, design: .serif))
-                .tracking(1.4)
-                .foregroundStyle(Color.secondaryText)
 
             Text("Who lived at\nthe same time?")
                 .font(.system(size: 36, weight: .semibold, design: .serif))
@@ -67,5 +71,35 @@ private struct HeaderView: View {
         }
         .padding(.top, 6)
         .padding(.bottom, 4)
+    }
+}
+
+private struct WikidataSearchResultRow: View {
+
+    let result: WikidataSearchResult
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+
+            Text(result.label)
+                .font(.headline)
+                .foregroundStyle(Color.primaryText)
+
+            if let description = result.description {
+                Text(description)
+                    .font(.subheadline)
+                    .foregroundStyle(Color.secondaryText)
+            }
+
+            Text(result.id)
+                .font(.caption)
+                .foregroundStyle(Color.secondaryText)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white)
+        )
     }
 }

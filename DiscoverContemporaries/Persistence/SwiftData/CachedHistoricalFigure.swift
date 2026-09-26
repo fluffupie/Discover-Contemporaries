@@ -38,3 +38,38 @@ final class CachedHistoricalFigure {
         self.lastViewedAt = Date()
     }
 }
+
+extension CachedHistoricalFigure {
+
+    convenience init(from figure: HistoricalFigure) {
+        self.init(
+            wikidataID: figure.id,
+            name: figure.name,
+            birthDate: figure.birthDate,
+            deathDate: figure.deathDate,
+            descriptionText: figure.description,
+            region: figure.region,
+            imageURL: figure.imageURL?.absoluteString
+        )
+    }
+
+    func toHistoricalFigure() -> HistoricalFigure {
+        HistoricalFigure(
+            id: wikidataID,
+            name: name,
+            description: descriptionText,
+            birthDate: birthDate,
+            deathDate: deathDate,
+            region: region,
+            imageURL: imageURL.flatMap { URL(string: $0) }
+        )
+    }
+}
+
+//https://www.wikidata.org/w/api.php
+//?action=wbsearchentities
+//&search=Napoleon
+//&language=en
+//&format=json
+//&type=item
+//&limit=10

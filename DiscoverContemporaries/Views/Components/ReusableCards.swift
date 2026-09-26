@@ -83,13 +83,23 @@ struct CategoryListRow: View {
     }
 }
 
+struct MigrationPlaceholderRow: View {
+    let icon: String
+    let title: String
+    let detail: String
+
+    var body: some View {
+        CategoryListRow(icon: icon, title: title, detail: detail)
+    }
+}
+
 struct CompareCard: View {
     let figure: HistoricalFigure
     let tint: Color
 
     var body: some View {
         HStack(spacing: 12) {
-            PortraitImage(imageName: figure.imageName)
+            PortraitImage(imageURL: figure.imageURL)
                 .frame(width: 58, height: 58)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
 
@@ -98,10 +108,10 @@ struct CompareCard: View {
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(Color.primaryText)
                     .lineLimit(1)
-                Text(figure.era)
+                Text(figure.lifespan)
                     .font(.caption2)
                     .foregroundStyle(Color.secondaryText)
-                Text(figure.summary)
+                Text(figure.description ?? "No description available")
                     .font(.caption2)
                     .foregroundStyle(Color.secondaryText)
                     .lineLimit(2)
