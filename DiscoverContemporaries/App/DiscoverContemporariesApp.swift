@@ -7,6 +7,7 @@
 
 import CoreText
 import SwiftUI
+import SwiftData
 
 // app entry point
 @main
@@ -19,6 +20,8 @@ struct DiscoverContemporariesApp: App {
         WindowGroup {
             ContentView()
         }
+        // SwiftData models
+        .modelContainer(for: [CachedHistoricalFigure.self])
     }
 }
 

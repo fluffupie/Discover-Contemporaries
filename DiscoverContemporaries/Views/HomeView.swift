@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct HomeView: View {
-    @State private var searchText = ""
+    @StateObject var model = FigureViewModel()
 
-    private let controller = FiguresController.shared
+    private let controller = FigureViewModel.shared
 
     private var displayedFigures: [HistoricalFigure] {
         controller.displayedFigures(for: searchText)

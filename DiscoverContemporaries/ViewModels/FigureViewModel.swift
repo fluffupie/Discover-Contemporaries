@@ -2,7 +2,8 @@ import Foundation
 
 // view model is the brain of one screen
 
-final class FiguresController {
+@MainActor
+final class FigureViewModel {
     static let shared = FiguresController()
 
     let appData: AppData
