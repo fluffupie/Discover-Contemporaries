@@ -2,8 +2,9 @@
   "figures": [
     
     {
-      "id": "da-vinci",
+      "id": "Q762",
       "name": "Leonardo da Vinci",
+      "description": "",
       "era": "1400s",
       "role": "Polymath",
       "period": "Renaissance",

@@ -5,12 +5,19 @@ import Foundation
 struct HistoricalFigure: Decodable, Identifiable {
     let id: String  // Wikidata ID, e.g. "Q517"
     let name: String
-    let description: String?
-    //    let era: String
-    //    let role: String
+    let descriptionText: String?
+    let gender: String?
+
+
     let birthDate: Date?
     let deathDate: Date?
-    let region: String?
+    
+    let country: String?
+    let placeOfBirth: String?
+    
+    let occupations: [String]
+    let movements: [String]
+
     let imageURL: URL?
 
     var lifespan: String {
@@ -50,9 +57,18 @@ struct HistoricalFigure: Decodable, Identifiable {
     }
 
     func matches(_ query: String) -> Bool {
-        [name, lifespan, description ?? "", region ?? ""]
-            .joined(separator: " ")
-            .localizedCaseInsensitiveContains(query)
+        [
+            name,
+            lifespan,
+            descriptionText ?? "",
+            gender ?? "",
+            country ?? "",
+            placeOfBirth ?? "",
+            occupations.joined(separator: " "),
+            movements.joined(separator: " ")
+        ]
+        .joined(separator: " ")
+        .localizedCaseInsensitiveContains(query)
     }
 
     private static let displayDateFormatter: DateFormatter = {

@@ -150,11 +150,15 @@ final class FigureCacheRepository {
         using figure: HistoricalFigure
     ) {
         cachedFigure.name = figure.name
+        cachedFigure.descriptionText = figure.descriptionText
+        cachedFigure.gender = figure.gender
         cachedFigure.birthDate = figure.birthDate
         cachedFigure.deathDate = figure.deathDate
-        cachedFigure.descriptionText = figure.description
-        cachedFigure.region = figure.region
+        cachedFigure.country = figure.country
+        cachedFigure.placeOfBirth = figure.placeOfBirth
         cachedFigure.imageURL = figure.imageURL?.absoluteString
+        cachedFigure.occupations = figure.occupations
+        cachedFigure.movements = figure.movements
         cachedFigure.cachedAt = Date()
         cachedFigure.lastViewedAt = Date()
     }
