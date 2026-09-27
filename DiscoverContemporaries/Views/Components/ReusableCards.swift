@@ -111,7 +111,7 @@ struct CompareCard: View {
                 Text(figure.lifespan)
                     .font(.caption2)
                     .foregroundStyle(Color.secondaryText)
-                Text(figure.description ?? "No description available")
+                Text(figure.descriptionText ?? "No description available")
                     .font(.caption2)
                     .foregroundStyle(Color.secondaryText)
                     .lineLimit(2)

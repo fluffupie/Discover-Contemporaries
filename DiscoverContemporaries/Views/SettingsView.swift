@@ -35,6 +35,7 @@ struct SettingsView: View {
         .padding(.horizontal, 24)
         .padding(.top, 16)
         .background(Color.appBackground)
-        .h1NavigationTitle("Settings")
+        .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

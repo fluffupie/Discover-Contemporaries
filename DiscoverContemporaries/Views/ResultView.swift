@@ -7,12 +7,12 @@ struct ResultView: View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 18) {
                 Text("Result")
-                    .font(.h1PageTitle)
+                    .font(.h1Title)
                     .tracking(1.2)
                     .lineSpacing(24)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .offset(x: 0, y: -50)
-
+                
                 ZStack {
                     Image("frame")
                         .resizable()
@@ -26,7 +26,7 @@ struct ResultView: View {
                         .offset(x: 65, y: -50)
                 }
                 .frame(width: 220, height: 220)
-
+                
                 VStack(alignment: .leading, spacing: 6) {
                     ZStack {
                         Rectangle()
@@ -46,7 +46,7 @@ struct ResultView: View {
                             .cornerRadius(3)
                             .offset(x: 0, y: -50)
                         Text(figure.name)
-                            .font(.h1PageTitle)
+                            .font(.h1Title)
                             .tracking(1.1)
                             .foregroundStyle(.white)
                             .lineLimit(1)
@@ -55,12 +55,12 @@ struct ResultView: View {
                             .padding(.horizontal, 12)
                             .padding(.vertical, 5)
                     }
-
-                    Text(figure.description ?? "No description available yet.")
+                    
+                    Text(figure.descriptionText ?? "No description available yet.")
                         .font(Font.custom("Inter", size: 14).weight(.medium))
                         .foregroundColor(.black)
                         .offset(x: 5, y: -30)
-
+                    
                     HStack {
                         Text(figure.lifespan)
                             .foregroundColor(.black)
@@ -75,18 +75,18 @@ struct ResultView: View {
                             .foregroundColor(.black)
                             .offset(x: 20, y: -35)
                     }
-
-                    Text(figure.region ?? "Historical figure")
+                    
+                    Text(figure.occupations.first ?? figure.country ?? "Historical figure")
                         .font(Font.custom("Inter", size: 14).weight(.medium))
                         .foregroundColor(.black)
                         .offset(x: 25, y: -30)
-
+                    
                     Text("Contemporaries")
-                        .font(.h1SectionTitle)
+                        .font(.h1Title)
                         .tracking(1.1)
                         .foregroundStyle(Color.tealButton)
                 }
-
+                
                 // TODO: Populate this from Wikidata lifespan data once contemporaries discovery is implemented.
                 Text("Contemporaries discovery is not implemented for Wikidata figures yet.")
                     .font(.caption)
@@ -95,7 +95,7 @@ struct ResultView: View {
                     .padding(12)
                     .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
-
+                
                 NavigationLink {
                     ContemporariesView(figure: figure)
                 } label: {
@@ -112,6 +112,6 @@ struct ResultView: View {
             .padding(.horizontal, 28)
         }
         .background(Color.appBackground)
-        .h1NavigationTitle("Result")
-    }
+        .navigationTitle("Result")
+        .navigationBarTitleDisplayMode(.inline)}
 }

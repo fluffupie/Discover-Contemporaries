@@ -157,6 +157,7 @@ final class FigureCacheRepository {
         cachedFigure.country = figure.country
         cachedFigure.placeOfBirth = figure.placeOfBirth
         cachedFigure.imageURL = figure.imageURL?.absoluteString
+        cachedFigure.imageName = figure.imageName
         cachedFigure.occupations = figure.occupations
         cachedFigure.movements = figure.movements
         cachedFigure.cachedAt = Date()

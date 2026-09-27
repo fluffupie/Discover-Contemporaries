@@ -14,6 +14,11 @@ struct PortraitImage: View {
         self.imageURL = imageURL
     }
 
+    init(imageName: String?, imageURL: URL?) {
+        self.imageName = imageName
+        self.imageURL = imageURL
+    }
+
     var body: some View {
         Group {
             if let imageURL {
@@ -32,6 +37,7 @@ struct PortraitImage: View {
                 Color.black.opacity(0.05)
             }
         }
+        .clipped()
         .background(Color.black.opacity(0.05))
     }
 }

@@ -15,6 +15,7 @@ struct JobsView: View {
         .padding(.horizontal, 24)
         .padding(.top, 16)
         .background(Color.appBackground)
-        .h1NavigationTitle("Jobs")
+        .navigationTitle("Jobs")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

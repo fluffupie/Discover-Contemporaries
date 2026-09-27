@@ -68,7 +68,7 @@ struct LifespanCompareView: View {
                         .foregroundStyle(Color.compareGold)
 
                     Text("They Were On The Earth Together For")
-                        .font(.h1SectionTitle)
+                        .font(.h1Title)
                         .tracking(1.1)
                         .foregroundStyle(Color.primaryText)
                         .multilineTextAlignment(.center)
@@ -89,7 +89,8 @@ struct LifespanCompareView: View {
             .padding(.bottom, 28)
         }
         .background(Color.appBackground)
-        .h1NavigationTitle("Compare")
+        .navigationTitle("Compare")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -102,7 +103,7 @@ private struct CompareProfilePanel: View {
     let showsGlowBadge: Bool
 
     private var regionName: String {
-        figure.region ?? "Global"
+        figure.country ?? "Global"
     }
 
     var body: some View {

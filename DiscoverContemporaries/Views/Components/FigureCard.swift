@@ -2,70 +2,42 @@ import SwiftUI
 
 struct FigureCard: View {
     let figure: HistoricalFigure
-    let height: CGFloat
+
+    private var countryText: String {
+        figure.country ?? "Unknown country"
+    }
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
+        GeometryReader { proxy in
+            let width = proxy.size.width
+            let textHeight = width / 3
 
-            AsyncImage(url: figure.imageURL) { phase in
-                switch phase {
-                case .empty:
-                    ZStack {
-                        Color.gray.opacity(0.12)
-                        ProgressView()
-                    }
+            VStack(alignment: .leading, spacing: 0) {
+                PortraitImage(imageName: figure.imageName, imageURL: figure.imageURL)
+                    .frame(width: width, height: width)
+                    .clipped()
 
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-
-                case .failure:
-                    ZStack {
-                        Color.gray.opacity(0.12)
-
-                        Image(systemName: "person.crop.rectangle")
-                            .font(.system(size: 32))
-                            .foregroundStyle(.secondary)
-                    }
-
-                @unknown default:
-                    EmptyView()
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: height)
-            .clipped()
-
-            LinearGradient(
-                colors: [.clear, .black.opacity(0.72)],
-                startPoint: .center,
-                endPoint: .bottom
-            )
-
-            VStack(alignment: .leading, spacing: 3) {
-
-                Text(figure.name)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-
-                if let region = figure.region {
-                    Text(region)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.78))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(figure.name)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Color.primaryText)
                         .lineLimit(1)
-                } else if let description = figure.description {
-                    Text(description)
+                        .minimumScaleFactor(0.8)
+
+                    Text(countryText)
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.78))
-                        .lineLimit(1)
+                        .foregroundStyle(Color.secondaryText)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.85)
                 }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 9)
+                .frame(width: width, height: textHeight, alignment: .topLeading)
+                .background(Color.white)
             }
-            .padding(8)
+            .frame(width: width, height: width + textHeight)
         }
-        .frame(height: height)
+        .aspectRatio(3 / 4, contentMode: .fit)
         .clipShape(RoundedRectangle(cornerRadius: 4))
         .background(
             RoundedRectangle(cornerRadius: 4)

@@ -19,6 +19,7 @@ struct HistoricalFigure: Decodable, Identifiable {
     let movements: [String]
 
     let imageURL: URL?
+    let imageName: String?
 
     var lifespan: String {
         guard let birthDate else {

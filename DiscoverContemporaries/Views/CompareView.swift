@@ -24,6 +24,7 @@ struct CompareView: View {
         }
         .padding(.horizontal, 24)
         .background(Color.appBackground)
-        .h1NavigationTitle("Compare")
+        .navigationTitle("Compare")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

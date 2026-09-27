@@ -16,6 +16,7 @@ final class CachedHistoricalFigure {
     var country: String?
     var placeOfBirth: String?
     var imageURL: String?
+    var imageName: String?
     
     var occupations: [String]
     var movements: [String]
@@ -33,6 +34,7 @@ final class CachedHistoricalFigure {
         country: String? = nil,
         placeOfBirth: String? = nil,
         imageURL: String? = nil,
+        imageName: String? = nil,
         occupations: [String] = [],
         movements: [String] = []
     ) {
@@ -45,6 +47,7 @@ final class CachedHistoricalFigure {
         self.country = country
         self.placeOfBirth = placeOfBirth
         self.imageURL = imageURL
+        self.imageName = imageName
         self.occupations = occupations
         self.movements = movements
         self.cachedAt = Date()
@@ -68,6 +71,7 @@ extension CachedHistoricalFigure {
             placeOfBirth: figure.placeOfBirth,
             
             imageURL: figure.imageURL?.absoluteString,
+            imageName: figure.imageName,
             occupations: figure.occupations,
             movements: figure.movements
         )
@@ -87,7 +91,8 @@ extension CachedHistoricalFigure {
             placeOfBirth: placeOfBirth,
             occupations: occupations,
             movements: movements,
-            imageURL: imageURL.flatMap { URL(string: $0) }
+            imageURL: imageURL.flatMap { URL(string: $0) },
+            imageName: imageName
         )
     }
 }

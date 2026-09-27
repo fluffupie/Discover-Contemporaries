@@ -15,6 +15,7 @@ struct EraView: View {
         .padding(.horizontal, 24)
         .padding(.top, 16)
         .background(Color.appBackground)
-        .h1NavigationTitle("Era")
+        .navigationTitle("Eras")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

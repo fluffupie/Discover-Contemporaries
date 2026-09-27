@@ -3,6 +3,10 @@ import SwiftUI
 struct ProfileView: View {
     let figure: HistoricalFigure
 
+    private var roleLabel: String {
+        figure.occupations.first ?? figure.country ?? "Historical figure"
+    }
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 18) {
@@ -25,7 +29,7 @@ struct ProfileView: View {
                     FigureIdentityBanner(figure: figure)
                         .offset(y: -50)
 
-                    Text(figure.description ?? "No description available yet.")
+                    Text(figure.descriptionText ?? "No description available yet.")
                         .font(.system(.body, design: .serif))
                         .foregroundColor(.black)
                         .offset(x: 5, y: -45)
@@ -46,12 +50,12 @@ struct ProfileView: View {
                             .offset(x: 20, y: -30)
                     }
 
-                    RolePill(label: figure.region ?? "Historical figure")
+                    RolePill(label: roleLabel)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .offset(y: -30)
 
                     Text("Contemporaries")
-                        .font(.h1SectionTitle)
+                        .font(.h1Title)
                         .tracking(1.1)
                         .foregroundColor(.emerald)
                         .offset(x: 5)
@@ -82,7 +86,8 @@ struct ProfileView: View {
             .padding(.horizontal, 30)
         }
         .background(Color.appBackground)
-        .h1NavigationTitle("Profile")
+        .navigationTitle("Profile")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -105,8 +110,8 @@ private struct FigureIdentityBanner: View {
                     .minimumScaleFactor(0.82)
                     .multilineTextAlignment(.leading)
 
-                if let region = figure.region {
-                    Text(region)
+                if let country = figure.country {
+                    Text(country)
                         .font(.caption)
                         .foregroundStyle(Color.secondaryText)
                         .lineLimit(1)

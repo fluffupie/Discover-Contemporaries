@@ -14,7 +14,7 @@ struct PageHeader: View {
     var body: some View {
         ZStack {
             Text(title)
-                .font(.h1PageTitle)
+                .font(.h1Title)
                 .tracking(1.2)
                 .foregroundStyle(Color.primaryText)
                 .frame(maxWidth: .infinity, alignment: .center)

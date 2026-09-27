@@ -37,9 +37,7 @@ extension Color {
 }
 
 extension Font {
-    static let h1Title = Font.custom("AlegreyaSansSC-Regular", size: 22, relativeTo: .title2)
-    static let h1PageTitle = Font.custom("AlegreyaSansSC-Medium", size: 22, relativeTo: .headline)
-    static let h1SectionTitle = Font.custom("AlegreyaSansSC-Regular", size: 18, relativeTo: .headline)
+    static let h1Title = Font.title
     static let welcomeTitle = Font.custom("AlegreyaSansSC-Regular", size: 24, relativeTo: .title2)
 }
 extension View {
@@ -48,7 +46,7 @@ extension View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text(title)
-                        .font(.h1PageTitle)
+                        .font(.h1Title)
                         .tracking(1.2)
                         .foregroundStyle(Color.primaryText)
                 }

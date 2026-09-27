@@ -26,6 +26,6 @@ struct ContemporariesView: View {
             .padding(.bottom, 26)
         }
         .background(Color.appBackground)
-        .h1NavigationTitle("Contemporaries")
-    }
+        .navigationTitle("Contemporaries")
+        .navigationBarTitleDisplayMode(.inline)    }
 }

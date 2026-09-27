@@ -32,6 +32,7 @@ struct ExploreView: View {
             .padding(.bottom, 26)
         }
         .background(Color.appBackground)
-        .h1NavigationTitle("Explore")
+        .navigationTitle("Explore")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

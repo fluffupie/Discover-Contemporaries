@@ -15,6 +15,7 @@ struct RegionView: View {
         .padding(.horizontal, 24)
         .padding(.top, 16)
         .background(Color.appBackground)
-        .h1NavigationTitle("Region")
+        .navigationTitle("Region")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
