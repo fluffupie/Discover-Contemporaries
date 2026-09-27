@@ -1,7 +1,7 @@
 import Foundation
 
 struct WikidataAPI {
-
+    // REST API call and data processing
     static func fetchFigures(
         query: String,
         completion: @escaping ([WikidataSearchResult]) -> Void
