@@ -13,7 +13,6 @@
       "movements": ["Renaissance"],
       "imageURL": null,
       "imageName": "da-vinci",
-      "accent": "fern",
       "contemporaries": ["mary-tudor"]
     },
     {
@@ -29,7 +28,6 @@
       "movements": [],
       "imageURL": null,
       "imageName": "mary-tudor",
-      "accent": "ochre",
       "contemporaries": ["Q762"]
     },
     {
@@ -45,7 +43,6 @@
       "movements": [],
       "imageURL": null,
       "imageName": "ada-lovelace",
-      "accent": "midnight",
       "contemporaries": []
     },
     {
@@ -61,7 +58,6 @@
       "movements": ["Post-Impressionism"],
       "imageURL": null,
       "imageName": "vincent-van-gogh",
-      "accent": "midnight",
       "contemporaries": ["sun-yatsen"]
     },
     {
@@ -77,7 +73,6 @@
       "movements": ["Chinese republicanism"],
       "imageURL": null,
       "imageName": "sun-yatsen",
-      "accent": "midnight",
       "contemporaries": ["vincent-van-gogh", "mao-zedong", "puyi"]
     },
     {
@@ -93,7 +88,6 @@
       "movements": ["Communism", "Maoism"],
       "imageURL": null,
       "imageName": "mao-zedong",
-      "accent": "midnight",
       "contemporaries": ["sun-yatsen", "puyi", "margaret-thatcher", "queen-elizabeth", "princess-margaret", "bruce-lee", "charles-iii", "michael-jackson", "princess-diana"]
     },
     {
@@ -109,7 +103,6 @@
       "movements": [],
       "imageURL": null,
       "imageName": "puyi",
-      "accent": "midnight",
       "contemporaries": ["sun-yatsen", "mao-zedong", "margaret-thatcher", "queen-elizabeth", "princess-margaret", "bruce-lee", "charles-iii", "michael-jackson", "princess-diana"]
     },
     {
@@ -125,7 +118,6 @@
       "movements": ["Conservatism", "Thatcherism"],
       "imageURL": null,
       "imageName": "margaret-thatcher",
-      "accent": "coral",
       "contemporaries": ["mao-zedong", "puyi", "queen-elizabeth", "princess-margaret", "bruce-lee", "charles-iii", "michael-jackson", "princess-diana"]
     },
     {
@@ -140,8 +132,7 @@
       "occupations": ["Monarch"],
       "movements": [],
       "imageURL": null,
-      "imageName": "elizabeth-II",
-      "accent": "emerald",
+      "imageName": "Elizabeth-II",
       "contemporaries": ["mao-zedong", "puyi", "margaret-thatcher", "princess-margaret", "bruce-lee", "charles-iii", "michael-jackson", "princess-diana"]
     },
     {
@@ -157,7 +148,6 @@
       "movements": [],
       "imageURL": null,
       "imageName": "princess-margaret",
-      "accent": "emerald",
       "contemporaries": ["mao-zedong", "puyi", "margaret-thatcher", "queen-elizabeth", "bruce-lee", "charles-iii", "michael-jackson", "princess-diana"]
     },
     {
@@ -173,7 +163,6 @@
       "movements": [],
       "imageURL": null,
       "imageName": "bruce-lee",
-      "accent": "emerald",
       "contemporaries": ["mao-zedong", "puyi", "margaret-thatcher", "queen-elizabeth", "princess-margaret", "charles-iii", "michael-jackson", "princess-diana"]
     },
     {
@@ -189,7 +178,6 @@
       "movements": [],
       "imageURL": null,
       "imageName": "charles-iii",
-      "accent": "emerald",
       "contemporaries": ["mao-zedong", "puyi", "margaret-thatcher", "queen-elizabeth", "princess-margaret", "bruce-lee", "michael-jackson", "princess-diana"]
     },
     {
@@ -205,7 +193,6 @@
       "movements": ["Pop music"],
       "imageURL": null,
       "imageName": "mj",
-      "accent": "smoke",
       "contemporaries": ["mao-zedong", "puyi", "margaret-thatcher", "queen-elizabeth", "princess-margaret", "bruce-lee", "charles-iii", "princess-diana"]
     },
     {
@@ -221,40 +208,7 @@
       "movements": [],
       "imageURL": null,
       "imageName": "princess-diana",
-      "accent": "emerald",
       "contemporaries": ["mao-zedong", "puyi", "margaret-thatcher", "queen-elizabeth", "princess-margaret", "bruce-lee", "charles-iii", "michael-jackson"]
-    }
-  ],
-  "regions": [
-    {
-      "id": "england",
-      "flag": "🇬🇧",
-      "name": "England",
-      "count": "4 figures"
-    },
-    {
-      "id": "italy",
-      "flag": "🇮🇹",
-      "name": "Italy",
-      "count": "1 figure"
-    },
-    {
-      "id": "china",
-      "flag": "🇨🇳",
-      "name": "China",
-      "count": "3 figures"
-    },
-    {
-      "id": "united-states",
-      "flag": "🇺🇸",
-      "name": "United States",
-      "count": "2 figures"
-    },
-    {
-      "id": "global",
-      "flag": "🌍",
-      "name": "Global",
-      "count": "14 figures"
     }
   ]
 }

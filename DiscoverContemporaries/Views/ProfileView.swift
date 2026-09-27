@@ -18,7 +18,19 @@ struct ProfileView: View {
     }
 
     private var roleLabel: String {
-        figure.occupations.first ?? figure.country ?? "Historical figure"
+        figure.occupations.first ?? "Historical figure"
+    }
+
+    private var countryText: String {
+        figure.country ?? "Unknown country"
+    }
+
+    private var birthplaceText: String {
+        figure.placeOfBirth ?? "Unknown birthplace"
+    }
+
+    private var movementsText: String {
+        figure.movements.isEmpty ? "No movement listed" : figure.movements.joined(separator: ", ")
     }
 
     private func loadPortraitImage() {
@@ -44,64 +56,56 @@ struct ProfileView: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 18) {
-                PortraitImage(imageName: profileImageName, imageURL: profileImageURL)
-                    .frame(width: 150, height: 150)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .shadow(color: .black.opacity(0.18), radius: 12, y: 7)
-                    .padding(.top, 10)
+            VStack(alignment: .leading, spacing: 18) {
+                ProfileHero(
+                    figure: figure,
+                    imageName: profileImageName,
+                    imageURL: profileImageURL,
+                    roleLabel: roleLabel,
+                    countryText: countryText
+                )
 
-                VStack(alignment: .leading, spacing: 6) {
-                    FigureIdentityBanner(figure: figure)
-
+                ProfileSection(title: "Summary") {
                     Text(figure.descriptionText ?? "No description available yet.")
                         .font(.system(.body, design: .serif))
-                        .foregroundColor(.black)
+                        .foregroundStyle(Color.primaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
 
-                    HStack {
-                        Text(figure.lifespan)
-                            .font(Font.custom("AlegreyaSansSC-Regular", size: 16))
-                            .foregroundColor(.black)
-                        Ellipse()
-                            .foregroundColor(.clear)
-                            .frame(width: 5, height: 5)
-                            .background(Color(red: 0.62, green: 0.11, blue: 0.14))
-                        Text(figure.ageText)
-                            .font(Font.custom("AlegreyaSansSC-Regular", size: 16))
-                            .foregroundColor(.black)
+                ProfileSection(title: "Details") {
+                    VStack(spacing: 10) {
+                        FactRow(icon: "calendar", label: "Lifespan", value: figure.lifespan)
+                        FactRow(icon: "hourglass", label: "Age", value: figure.ageText)
+                        FactRow(icon: "mappin.and.ellipse", label: "Birthplace", value: birthplaceText)
+                        FactRow(icon: "globe", label: "Country", value: countryText)
+                        FactRow(icon: "sparkles", label: "Movement", value: movementsText)
                     }
-
-                    RolePill(label: roleLabel)
-                        .frame(maxWidth: .infinity, alignment: .center)
-
-                    Text("Contemporaries")
-                        .font(.headline)
-                        .foregroundColor(.emerald)
                 }
 
-                // TODO: Populate this from Wikidata lifespan data once contemporaries discovery is implemented.
-                Text("Contemporaries discovery is not implemented for Wikidata figures yet.")
-                    .font(.caption)
-                    .foregroundStyle(Color.secondaryText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(12)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                ProfileSection(title: "Contemporaries") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Contemporaries discovery is not implemented for Wikidata figures yet.")
+                            .font(.caption)
+                            .foregroundStyle(Color.secondaryText)
 
-                NavigationLink {
-                    ContemporariesView(figure: figure)
-                } label: {
-                    Text("See all")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Color.tealButton)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        NavigationLink {
+                            ContemporariesView(figure: figure)
+                        } label: {
+                            Label("See all", systemImage: "person.2.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.tealButton)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
-                .buttonStyle(.plain)
             }
-            .padding(.horizontal, 30)
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 28)
         }
         .background(Color.appBackground)
         .task {
@@ -112,71 +116,115 @@ struct ProfileView: View {
     }
 }
 
-private struct FigureIdentityBanner: View {
+private struct ProfileHero: View {
     let figure: HistoricalFigure
+    let imageName: String?
+    let imageURL: URL?
+    let roleLabel: String
+    let countryText: String
 
     var body: some View {
-        HStack(spacing: 12) {
-            Rectangle()
-                .fill(Color.ochre)
-                .frame(width: 3)
-                .clipShape(Capsule())
+        VStack(spacing: 14) {
+            PortraitImage(imageName: imageName, imageURL: imageURL)
+                .frame(width: 154, height: 154)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.white.opacity(0.85), lineWidth: 3)
+                )
+                .shadow(color: .black.opacity(0.16), radius: 12, y: 7)
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(figure.name.uppercased())
-                    .font(.system(size: 20, weight: .regular, design: .serif))
-                    .tracking(1.2)
+            VStack(spacing: 8) {
+                Text(figure.name)
+                    .font(.system(size: 28, weight: .semibold, design: .serif))
                     .foregroundStyle(Color.primaryText)
+                    .multilineTextAlignment(.center)
                     .lineLimit(2)
-                    .minimumScaleFactor(0.82)
-                    .multilineTextAlignment(.leading)
+                    .minimumScaleFactor(0.78)
 
-                if let country = figure.country {
-                    Text(country)
-                        .font(.caption)
-                        .foregroundStyle(Color.secondaryText)
-                        .lineLimit(1)
+                HStack(spacing: 8) {
+                    ProfilePill(text: roleLabel, systemImage: "sparkle")
+                    ProfilePill(text: countryText, systemImage: "globe")
                 }
+                .frame(maxWidth: .infinity)
             }
         }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 18)
         .padding(.horizontal, 14)
-        .padding(.vertical, 14)
-        .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
         .background(Color.white.opacity(0.72))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.ochre.opacity(0.18), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.black.opacity(0.06), lineWidth: 1)
         )
-        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 3)
     }
 }
 
-private struct RolePill: View {
-    let label: String
+private struct ProfilePill: View {
+    let text: String
+    let systemImage: String
 
     var body: some View {
-        HStack(spacing: 7) {
-            Image(systemName: "sparkle")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(Color.ochre.opacity(0.78))
+        Label(text.uppercased(), systemImage: systemImage)
+            .font(Font.custom("AlegreyaSansSC-Regular", size: 13).weight(.medium))
+            .foregroundStyle(Color.ochre)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.ochre.opacity(0.08))
+            .clipShape(Capsule())
+    }
+}
 
-            Text(label.uppercased())
-                .font(Font.custom("AlegreyaSansSC-Regular", size: 15).weight(.medium))
-                .tracking(1.1)
-                .foregroundStyle(Color.ochre)
-                .lineLimit(1)
-                .minimumScaleFactor(0.82)
+private struct ProfileSection<Content: View>: View {
+    let title: String
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(Color.primaryText)
+
+            content
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 7)
-        .background(Color.white.opacity(0.62))
-        .clipShape(Capsule())
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(Color.white.opacity(0.78))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
         .overlay(
-            Capsule()
-                .stroke(Color.ochre.opacity(0.16), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.black.opacity(0.06), lineWidth: 1)
         )
-        .shadow(color: .black.opacity(0.035), radius: 5, x: 0, y: 2)
-        .accessibilityElement(children: .combine)
+    }
+}
+
+private struct FactRow: View {
+    let icon: String
+    let label: String
+    let value: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.tealButton)
+                .frame(width: 22)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .font(.caption)
+                    .foregroundStyle(Color.secondaryText)
+
+                Text(value)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Color.primaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+        }
     }
 }
