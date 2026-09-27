@@ -45,6 +45,24 @@ struct WikidataAPI {
         }.resume()
     }
 
+    static func fetchCountryName(
+        for figure: HistoricalFigure,
+        completion: @escaping (String?) -> Void
+    ) {
+        if figure.id.hasPrefix("Q") {
+            fetchCountryName(forID: figure.id, completion: completion)
+        } else {
+            fetchFigures(query: figure.name) { results in
+                guard let id = results.first?.id else {
+                    completion(nil)
+                    return
+                }
+
+                fetchCountryName(forID: id, completion: completion)
+            }
+        }
+    }
+
     static func fetchPortraitURL(
         forID id: String,
         completion: @escaping (URL?) -> Void
@@ -79,6 +97,92 @@ struct WikidataAPI {
                     )
                     let fileName = decoded.entities[id]?.portraitFileName
                     completion(fileName.flatMap(commonsImageURL))
+                } catch {
+                    completion(nil)
+                }
+            }
+        }.resume()
+    }
+
+    private static func fetchCountryName(
+        forID id: String,
+        completion: @escaping (String?) -> Void
+    ) {
+        var components = URLComponents(
+            string: "https://www.wikidata.org/w/api.php"
+        )!
+
+        components.queryItems = [
+            URLQueryItem(name: "action", value: "wbgetentities"),
+            URLQueryItem(name: "ids", value: id),
+            URLQueryItem(name: "props", value: "claims"),
+            URLQueryItem(name: "format", value: "json")
+        ]
+
+        guard let url = components.url else {
+            completion(nil)
+            return
+        }
+
+        URLSession.shared.dataTask(with: request(for: url)) { data, _, error in
+            guard let data = data, error == nil else {
+                completion(nil)
+                return
+            }
+
+            Task { @MainActor in
+                do {
+                    let decoded = try JSONDecoder().decode(
+                        WikidataEntitiesResponse.self,
+                        from: data
+                    )
+                    guard let countryID = decoded.entities[id]?.countryIDs.first else {
+                        completion(nil)
+                        return
+                    }
+
+                    fetchEntityLabel(forID: countryID, completion: completion)
+                } catch {
+                    completion(nil)
+                }
+            }
+        }.resume()
+    }
+
+    private static func fetchEntityLabel(
+        forID id: String,
+        completion: @escaping (String?) -> Void
+    ) {
+        var components = URLComponents(
+            string: "https://www.wikidata.org/w/api.php"
+        )!
+
+        components.queryItems = [
+            URLQueryItem(name: "action", value: "wbgetentities"),
+            URLQueryItem(name: "ids", value: id),
+            URLQueryItem(name: "props", value: "labels"),
+            URLQueryItem(name: "languages", value: "en"),
+            URLQueryItem(name: "format", value: "json")
+        ]
+
+        guard let url = components.url else {
+            completion(nil)
+            return
+        }
+
+        URLSession.shared.dataTask(with: request(for: url)) { data, _, error in
+            guard let data = data, error == nil else {
+                completion(nil)
+                return
+            }
+
+            Task { @MainActor in
+                do {
+                    let decoded = try JSONDecoder().decode(
+                        WikidataEntitiesResponse.self,
+                        from: data
+                    )
+                    completion(decoded.entities[id]?.englishLabel)
                 } catch {
                     completion(nil)
                 }
@@ -167,6 +271,7 @@ private struct WikidataEntitiesResponse: Decodable {
 
 private struct WikidataEntity: Decodable {
     let claims: [String: [WikidataClaim]]?
+    let labels: [String: WikidataLabel]?
 
     var isHuman: Bool {
         claims?["P31"]?.contains { claim in
@@ -174,11 +279,25 @@ private struct WikidataEntity: Decodable {
         } ?? false
     }
 
+    var countryIDs: [String] {
+        claims?["P27"]?.compactMap { claim in
+            claim.mainsnak.datavalue?.value?.id
+        } ?? []
+    }
+
+    var englishLabel: String? {
+        labels?["en"]?.value
+    }
+
     var portraitFileName: String? {
         claims?["P18"]?.compactMap { claim in
             claim.mainsnak.datavalue?.stringValue
         }.first
     }
+}
+
+private struct WikidataLabel: Decodable {
+    let value: String
 }
 
 private struct WikidataClaim: Decodable {
