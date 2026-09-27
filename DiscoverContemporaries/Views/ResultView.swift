@@ -13,19 +13,11 @@ struct ResultView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .offset(x: 0, y: -50)
                 
-                ZStack {
-                    Image("frame")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 220, height: 220)
-                        .offset(x: 65, y: -40)
-                    PortraitImage(imageURL: figure.imageURL)
-                        .frame(width: 138, height: 138)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                        .shadow(color: .black.opacity(0.2), radius: 12, y: 7)
-                        .offset(x: 65, y: -50)
-                }
-                .frame(width: 220, height: 220)
+                PortraitImage(imageName: figure.imageName, imageURL: figure.imageURL)
+                    .frame(width: 150, height: 150)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .shadow(color: .black.opacity(0.18), radius: 12, y: 7)
+                    .frame(maxWidth: .infinity, alignment: .center)
                 
                 VStack(alignment: .leading, spacing: 6) {
                     ZStack {

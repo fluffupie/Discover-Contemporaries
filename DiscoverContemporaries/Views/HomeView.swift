@@ -27,8 +27,7 @@ struct HomeView: View {
                 }
 
                 Text(isSearching ? "Search results" : "Explore figures")
-                    .font(.h1Title)
-                    .tracking(1.1)
+                    .font(.headline)
                     .foregroundStyle(Color.primaryText)
 
                 if isSearching {
@@ -103,7 +102,7 @@ private struct HeaderView: View {
         VStack(alignment: .leading, spacing: 10) {
 
             Text("Who lived at\nthe same time?")
-                .font(.system(size: 30, weight: .semibold, design: .serif))
+                .font(.system(size: 26, weight: .semibold, design: .serif))
                 .foregroundStyle(Color.primaryText)
                 .lineSpacing(1)
                 .lineLimit(2)
@@ -115,7 +114,6 @@ private struct HeaderView: View {
                 .foregroundStyle(Color.secondaryText)
                 .padding(.top, 2)
         }
-        .padding(.top, 6)
         .padding(.bottom, 4)
     }
 }
@@ -145,8 +143,8 @@ private struct WikidataSearchResultRow: View {
         NavigationLink {
             ProfileView(figure: figure)
         } label: {
-            HStack(spacing: 10) {
-                VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 20) {
+                VStack(alignment: .leading, spacing: 10) {
                     Text(result.label)
                         .font(.headline)
                         .foregroundStyle(Color.primaryText)
@@ -156,10 +154,6 @@ private struct WikidataSearchResultRow: View {
                             .font(.subheadline)
                             .foregroundStyle(Color.secondaryText)
                     }
-
-//                    Text(result.id)
-//                        .font(.caption)
-//                        .foregroundStyle(Color.secondaryText)
                 }
 
                 Spacer()

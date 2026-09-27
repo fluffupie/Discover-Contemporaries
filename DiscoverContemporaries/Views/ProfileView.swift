@@ -1,64 +1,82 @@
+import SwiftData
 import SwiftUI
 
 struct ProfileView: View {
+    @Environment(\.modelContext) private var modelContext
+
     let figure: HistoricalFigure
+
+    @State private var resolvedImageName: String?
+    @State private var resolvedImageURL: URL?
+
+    private var profileImageName: String? {
+        resolvedImageName ?? figure.imageName
+    }
+
+    private var profileImageURL: URL? {
+        resolvedImageURL ?? figure.imageURL
+    }
 
     private var roleLabel: String {
         figure.occupations.first ?? figure.country ?? "Historical figure"
     }
 
+    private func loadPortraitImage() {
+        guard profileImageName == nil, profileImageURL == nil else {
+            return
+        }
+
+        let repository = FigureCacheRepository(context: modelContext)
+
+        if let cachedFigure = try? repository.fetchFigure(withID: figure.id) {
+            resolvedImageName = cachedFigure.imageName
+            resolvedImageURL = cachedFigure.imageURL
+
+            if resolvedImageName != nil || resolvedImageURL != nil {
+                return
+            }
+        }
+
+        WikidataAPI.fetchPortraitURL(forID: figure.id) { imageURL in
+            resolvedImageURL = imageURL
+        }
+    }
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 18) {
-                ZStack {
-                    Image("frame")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 230, height: 230)
-                        .offset(y: -25)
-
-                    PortraitImage(imageURL: figure.imageURL)
-                        .frame(width: 140, height: 140)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                        .shadow(color: .black.opacity(0.2), radius: 12, y: 7)
-                        .offset(y: -25)
-                }
-                .frame(width: 230, height: 230)
+                PortraitImage(imageName: profileImageName, imageURL: profileImageURL)
+                    .frame(width: 150, height: 150)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .shadow(color: .black.opacity(0.18), radius: 12, y: 7)
+                    .padding(.top, 10)
 
                 VStack(alignment: .leading, spacing: 6) {
                     FigureIdentityBanner(figure: figure)
-                        .offset(y: -50)
 
                     Text(figure.descriptionText ?? "No description available yet.")
                         .font(.system(.body, design: .serif))
                         .foregroundColor(.black)
-                        .offset(x: 5, y: -45)
 
                     HStack {
                         Text(figure.lifespan)
                             .font(Font.custom("AlegreyaSansSC-Regular", size: 16))
                             .foregroundColor(.black)
-                            .offset(x: 5, y: -30)
                         Ellipse()
                             .foregroundColor(.clear)
                             .frame(width: 5, height: 5)
                             .background(Color(red: 0.62, green: 0.11, blue: 0.14))
-                            .offset(x: 15, y: -30)
                         Text(figure.ageText)
                             .font(Font.custom("AlegreyaSansSC-Regular", size: 16))
                             .foregroundColor(.black)
-                            .offset(x: 20, y: -30)
                     }
 
                     RolePill(label: roleLabel)
                         .frame(maxWidth: .infinity, alignment: .center)
-                        .offset(y: -30)
 
                     Text("Contemporaries")
-                        .font(.h1Title)
-                        .tracking(1.1)
+                        .font(.headline)
                         .foregroundColor(.emerald)
-                        .offset(x: 5)
                 }
 
                 // TODO: Populate this from Wikidata lifespan data once contemporaries discovery is implemented.
@@ -86,6 +104,9 @@ struct ProfileView: View {
             .padding(.horizontal, 30)
         }
         .background(Color.appBackground)
+        .task {
+            loadPortraitImage()
+        }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
     }

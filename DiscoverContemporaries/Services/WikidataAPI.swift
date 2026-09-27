@@ -45,6 +45,59 @@ struct WikidataAPI {
         }.resume()
     }
 
+    static func fetchPortraitURL(
+        forID id: String,
+        completion: @escaping (URL?) -> Void
+    ) {
+        var components = URLComponents(
+            string: "https://www.wikidata.org/w/api.php"
+        )!
+
+        components.queryItems = [
+            URLQueryItem(name: "action", value: "wbgetentities"),
+            URLQueryItem(name: "ids", value: id),
+            URLQueryItem(name: "props", value: "claims"),
+            URLQueryItem(name: "format", value: "json")
+        ]
+
+        guard let url = components.url else {
+            completion(nil)
+            return
+        }
+
+        URLSession.shared.dataTask(with: request(for: url)) { data, _, error in
+            guard let data = data, error == nil else {
+                completion(nil)
+                return
+            }
+
+            Task { @MainActor in
+                do {
+                    let decoded = try JSONDecoder().decode(
+                        WikidataEntitiesResponse.self,
+                        from: data
+                    )
+                    let fileName = decoded.entities[id]?.portraitFileName
+                    completion(fileName.flatMap(commonsImageURL))
+                } catch {
+                    completion(nil)
+                }
+            }
+        }.resume()
+    }
+
+    private static func commonsImageURL(for fileName: String) -> URL? {
+        guard let encodedFileName = fileName.addingPercentEncoding(
+            withAllowedCharacters: .urlPathAllowed
+        ) else {
+            return nil
+        }
+
+        return URL(
+            string: "https://commons.wikimedia.org/wiki/Special:FilePath/\(encodedFileName)?width=500"
+        )
+    }
+
     private static func request(for url: URL) -> URLRequest {
         var request = URLRequest(url: url)
         request.setValue(
@@ -120,6 +173,12 @@ private struct WikidataEntity: Decodable {
             claim.mainsnak.datavalue?.value?.id == "Q5"
         } ?? false
     }
+
+    var portraitFileName: String? {
+        claims?["P18"]?.compactMap { claim in
+            claim.mainsnak.datavalue?.stringValue
+        }.first
+    }
 }
 
 private struct WikidataClaim: Decodable {
@@ -132,6 +191,7 @@ private struct WikidataMainSnak: Decodable {
 
 private struct WikidataDataValue: Decodable {
     let value: WikidataEntityValue?
+    let stringValue: String?
 
     private enum CodingKeys: String, CodingKey {
         case value
@@ -140,6 +200,7 @@ private struct WikidataDataValue: Decodable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         value = try? container.decode(WikidataEntityValue.self, forKey: .value)
+        stringValue = try? container.decode(String.self, forKey: .value)
     }
 }
 
