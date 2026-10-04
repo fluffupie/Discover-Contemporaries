@@ -14,7 +14,7 @@ struct ResultView: View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 18) {
                 Text("Result")
-                    .font(.h1Title)
+                    .font(.title)
                     .tracking(1.2)
                     .lineSpacing(24)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -45,7 +45,7 @@ struct ResultView: View {
                             .cornerRadius(3)
                             .offset(x: 0, y: -50)
                         Text(figure.name)
-                            .font(.h1Title)
+                            .font(.title)
                             .tracking(1.1)
                             .foregroundStyle(.white)
                             .lineLimit(1)
@@ -81,7 +81,7 @@ struct ResultView: View {
                         .offset(x: 25, y: -30)
                     
                     Text("Contemporaries")
-                        .font(.h1Title)
+                        .font(.title)
                         .tracking(1.1)
                         .foregroundStyle(Color.tealButton)
                 }
