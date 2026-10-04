@@ -6,14 +6,14 @@ struct HomeView: View {
 
     @Environment(\.modelContext) private var modelContext
 
-    @StateObject private var model: FigureViewModel
+    @StateObject private var model: HomeViewModel
 
     @Query(sort: \CachedHistoricalFigure.name)
     private var cachedFigures: [CachedHistoricalFigure]
 
-    init(model: FigureViewModel? = nil) {
+    init(model: HomeViewModel? = nil) {
         _model = StateObject(
-            wrappedValue: model ?? FigureViewModel()
+            wrappedValue: model ?? HomeViewModel()
         )
     }
 
@@ -464,7 +464,7 @@ private let homePreviewContainer =
 #Preview {
     NavigationStack {
         HomeView(
-            model: FigureViewModel()
+            model: HomeViewModel()
         )
     }
     .modelContainer(

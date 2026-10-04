@@ -2,7 +2,7 @@ import Combine
 import Foundation
 
 @MainActor
-final class FigureViewModel: ObservableObject {
+final class HomeViewModel: ObservableObject {
 
     @Published var searchText = ""
     @Published var searchResults: [WikidataSearchResult] = []
