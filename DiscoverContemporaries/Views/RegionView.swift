@@ -6,11 +6,11 @@ struct RegionView: View {
 
     private var regions: [RegionSummary] {
         let counts = cachedFigures.reduce(into: [String: Int]()) { result, figure in
-            guard let country = figure.country, !country.isEmpty else {
+            guard let birthPlace = figure.birthPlace, !birthPlace.isEmpty else {
                 return
             }
 
-            result[country, default: 0] += 1
+            result[birthPlace, default: 0] += 1
         }
 
         return counts

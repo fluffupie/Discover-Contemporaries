@@ -1,40 +1,36 @@
 import SwiftUI
 
 struct PortraitImage: View {
-    private let imageName: String?
-    private let imageURL: URL?
+    let imageName: String?
+    let imageURL: URL?
 
-    init(imageName: String) {
-        self.imageName = imageName
-        self.imageURL = nil
-    }
-
-    init(imageURL: URL?) {
-        self.imageName = nil
-        self.imageURL = imageURL
-    }
-
-    init(imageName: String?, imageURL: URL?) {
+    init(
+        imageName: String? = nil,
+        imageURL: URL? = nil
+    ) {
         self.imageName = imageName
         self.imageURL = imageURL
     }
 
     var body: some View {
         Group {
-            if let imageURL {
+            if let imageName {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFill()
+
+            } else if let imageURL {
                 AsyncImage(url: imageURL) { image in
                     image
                         .resizable()
                         .scaledToFill()
                 } placeholder: {
-                    Color.black.opacity(0.05)
+                    ProgressView()
                 }
-            } else if let imageName {
-                Image(imageName)
-                    .resizable()
-                    .scaledToFill()
             } else {
-                Color.black.opacity(0.05)
+                Image(systemName: "person.crop.square")
+                    .resizable()
+                    .scaledToFit()
             }
         }
         .clipped()

@@ -103,7 +103,7 @@ private struct CompareProfilePanel: View {
     let showsGlowBadge: Bool
 
     private var regionName: String {
-        figure.country ?? "Global"
+        figure.birthPlace ?? "Global"
     }
 
     var body: some View {
