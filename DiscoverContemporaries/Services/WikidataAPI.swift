@@ -1,274 +1,118 @@
 import Foundation
 
 struct WikidataAPI {
-    // REST API call and data processing
+
+    private static let baseURL = "https://www.wikidata.org/w/api.php"
+
+    // MARK: - Public API
+
     static func fetchFigures(
         query: String,
         completion: @escaping ([WikidataSearchResult]) -> Void
     ) {
-        var components = URLComponents(
-            string: "https://www.wikidata.org/w/api.php"
-        )!
-
-        components.queryItems = [
-            URLQueryItem(name: "action", value: "wbsearchentities"),
-            URLQueryItem(name: "search", value: query),
-            URLQueryItem(name: "language", value: "en"),
-            URLQueryItem(name: "format", value: "json"),
-            URLQueryItem(name: "type", value: "item"),
-            URLQueryItem(name: "limit", value: "20")
-        ]
-
-        guard let url = components.url else {
+        guard let url = makeSearchURL(query: query) else {
             completion([])
             return
         }
 
-        URLSession.shared.dataTask(with: request(for: url)) { data, _, error in
-            guard let data = data, error == nil else {
+        fetch(
+            url: url,
+            as: WikidataSearchResponse.self
+        ) { response in
+            guard let response else {
                 completion([])
                 return
             }
 
-            Task { @MainActor in
-                do {
-                    let decoded = try JSONDecoder().decode(
-                        WikidataSearchResponse.self,
-                        from: data
-                    )
+            filterHumanResults(
+                response.search,
+                completion: completion
+            )
+        }
+    }
 
-                    filterHumanResults(decoded.search, completion: completion)
-                } catch {
-                    completion([])
-                }
+    static func fetchDetails(
+        forID id: String,
+        completion: @escaping (WikidataFigureDetails?) -> Void
+    ) {
+        guard
+            let url = makeEntitiesURL(
+                ids: [id],
+                properties: "claims"
+            )
+        else {
+            completion(nil)
+            return
+        }
+
+        fetch(
+            url: url,
+            as: WikidataEntitiesResponse.self
+        ) { response in
+            guard
+                let entity = response?.entities[id]
+            else {
+                completion(nil)
+                return
             }
-        }.resume()
+
+            let details = WikidataFigureDetails(
+                birthDate: entity.birthDate,
+                deathDate: entity.deathDate,
+                portraitURL: entity.portraitFileName
+                    .flatMap(commonsImageURL),
+                countryID: entity.countryIDs.first
+            )
+
+            completion(details)
+        }
     }
 
     static func fetchCountryName(
-        for figure: HistoricalFigure,
+        forID id: String,
         completion: @escaping (String?) -> Void
     ) {
-        if figure.id.hasPrefix("Q") {
-            fetchCountryName(forID: figure.id, completion: completion)
-        } else {
-            fetchFigures(query: figure.name) { results in
-                guard let id = results.first?.id else {
-                    completion(nil)
-                    return
-                }
-
-                fetchCountryName(forID: id, completion: completion)
-            }
-        }
-    }
-    
-    static func fetchLifespan(
-        forID id: String,
-        completion: @escaping (Date?, Date?) -> Void
-    ) {
-        var components = URLComponents(
-            string: "https://www.wikidata.org/w/api.php"
-        )!
-
-        components.queryItems = [
-            URLQueryItem(name: "action", value: "wbgetentities"),
-            URLQueryItem(name: "ids", value: id),
-            URLQueryItem(name: "props", value: "claims"),
-            URLQueryItem(name: "format", value: "json")
-        ]
-
-        guard let url = components.url else {
-            completion(nil, nil)
-            return
-        }
-
-        URLSession.shared.dataTask(with: request(for: url)) { data, _, error in
-            guard let data = data, error == nil else {
-                completion(nil, nil)
-                return
-            }
-
-            Task { @MainActor in
-                do {
-                    let decoded = try JSONDecoder().decode(
-                        WikidataEntitiesResponse.self,
-                        from: data
-                    )
-                    let entity = decoded.entities[id]
-                    let birth = entity?.birthDate
-                    let death = entity?.deathDate
-                    completion(birth, death)
-                } catch {
-                    completion(nil, nil)
-                }
-            }
-        }.resume()
-    }
-
-    static func fetchPortraitURL(
-        forID id: String,
-        completion: @escaping (URL?) -> Void
-    ) {
-        var components = URLComponents(
-            string: "https://www.wikidata.org/w/api.php"
-        )!
-
-        components.queryItems = [
-            URLQueryItem(name: "action", value: "wbgetentities"),
-            URLQueryItem(name: "ids", value: id),
-            URLQueryItem(name: "props", value: "claims"),
-            URLQueryItem(name: "format", value: "json")
-        ]
-
-        guard let url = components.url else {
-            completion(nil)
-            return
-        }
-
-        URLSession.shared.dataTask(with: request(for: url)) { data, _, error in
-            guard let data = data, error == nil else {
+        fetchDetails(forID: id) { details in
+            guard let countryID = details?.countryID else {
                 completion(nil)
                 return
             }
 
-            Task { @MainActor in
-                do {
-                    let decoded = try JSONDecoder().decode(
-                        WikidataEntitiesResponse.self,
-                        from: data
-                    )
-                    let fileName = decoded.entities[id]?.portraitFileName
-                    completion(fileName.flatMap(commonsImageURL))
-                } catch {
-                    completion(nil)
-                }
-            }
-        }.resume()
+            fetchEntityLabel(
+                forID: countryID,
+                completion: completion
+            )
+        }
     }
 
-    private static func fetchCountryName(
+    // MARK: - Supporting Requests
+
+    static func fetchEntityLabel(
         forID id: String,
         completion: @escaping (String?) -> Void
     ) {
-        var components = URLComponents(
-            string: "https://www.wikidata.org/w/api.php"
-        )!
-
-        components.queryItems = [
-            URLQueryItem(name: "action", value: "wbgetentities"),
-            URLQueryItem(name: "ids", value: id),
-            URLQueryItem(name: "props", value: "claims"),
-            URLQueryItem(name: "format", value: "json")
-        ]
-
-        guard let url = components.url else {
+        guard
+            let url = makeEntitiesURL(
+                ids: [id],
+                properties: "labels",
+                languages: "en"
+            )
+        else {
             completion(nil)
             return
         }
 
-        URLSession.shared.dataTask(with: request(for: url)) { data, _, error in
-            guard let data = data, error == nil else {
-                completion(nil)
-                return
-            }
-
-            Task { @MainActor in
-                do {
-                    let decoded = try JSONDecoder().decode(
-                        WikidataEntitiesResponse.self,
-                        from: data
-                    )
-                    guard let countryID = decoded.entities[id]?.countryIDs.first else {
-                        completion(nil)
-                        return
-                    }
-
-                    fetchEntityLabel(forID: countryID, completion: completion)
-                } catch {
-                    completion(nil)
-                }
-            }
-        }.resume()
-    }
-
-    private static func fetchEntityLabel(
-        forID id: String,
-        completion: @escaping (String?) -> Void
-    ) {
-        var components = URLComponents(
-            string: "https://www.wikidata.org/w/api.php"
-        )!
-
-        components.queryItems = [
-            URLQueryItem(name: "action", value: "wbgetentities"),
-            URLQueryItem(name: "ids", value: id),
-            URLQueryItem(name: "props", value: "labels"),
-            URLQueryItem(name: "languages", value: "en"),
-            URLQueryItem(name: "format", value: "json")
-        ]
-
-        guard let url = components.url else {
-            completion(nil)
-            return
+        fetch(
+            url: url,
+            as: WikidataEntitiesResponse.self
+        ) { response in
+            completion(
+                response?
+                    .entities[id]?
+                    .englishLabel
+            )
         }
-
-        URLSession.shared.dataTask(with: request(for: url)) { data, _, error in
-            guard let data = data, error == nil else {
-                completion(nil)
-                return
-            }
-
-            Task { @MainActor in
-                do {
-                    let decoded = try JSONDecoder().decode(
-                        WikidataEntitiesResponse.self,
-                        from: data
-                    )
-                    completion(decoded.entities[id]?.englishLabel)
-                } catch {
-                    completion(nil)
-                }
-            }
-        }.resume()
     }
-
-    private static func commonsImageURL(for fileName: String) -> URL? {
-        guard let encodedFileName = fileName.addingPercentEncoding(
-            withAllowedCharacters: .urlPathAllowed
-        ) else {
-            return nil
-        }
-
-        return URL(
-            string: "https://commons.wikimedia.org/wiki/Special:FilePath/\(encodedFileName)?width=500"
-        )
-    }
-
-    private static func request(for url: URL) -> URLRequest {
-        var request = URLRequest(url: url)
-        request.setValue(
-            "DiscoverContemporaries/1.0 (student project; s4084278@student.rmit.edu.au)",
-            forHTTPHeaderField: "User-Agent"
-        )
-        return request
-    }
-    
-    fileprivate static func parseWikidataTime(_ time: String) -> Date? {
-        // Wikidata time format example: "+1879-03-14T00:00:00Z"
-        let trimmed = time.hasPrefix("+") ? String(time.dropFirst()) : time
-        guard let datePart = trimmed.split(separator: "T").first else { return nil }
-        let dateString = String(datePart)
-        return wikidataDateFormatter.date(from: dateString)
-    }
-    
-    private static let wikidataDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter
-    }()
 
     private static func filterHumanResults(
         _ results: [WikidataSearchResult],
@@ -281,48 +125,237 @@ struct WikidataAPI {
             return
         }
 
-        var components = URLComponents(
-            string: "https://www.wikidata.org/w/api.php"
-        )!
-
-        components.queryItems = [
-            URLQueryItem(name: "action", value: "wbgetentities"),
-            URLQueryItem(name: "ids", value: ids.joined(separator: "|")),
-            URLQueryItem(name: "props", value: "claims"),
-            URLQueryItem(name: "format", value: "json")
-        ]
-
-        guard let url = components.url else {
+        guard
+            let url = makeEntitiesURL(
+                ids: ids,
+                properties: "claims"
+            )
+        else {
             completion([])
             return
         }
 
-        URLSession.shared.dataTask(with: request(for: url)) { data, _, error in
-            guard let data = data, error == nil else {
+        fetch(
+            url: url,
+            as: WikidataEntitiesResponse.self
+        ) { response in
+            guard let response else {
                 completion([])
                 return
             }
 
-            Task { @MainActor in
+            let humanIDs = Set(
+                response.entities
+                    .filter { $0.value.isHuman }
+                    .map(\.key)
+            )
+
+            let humanResults = results.filter {
+                humanIDs.contains($0.id)
+            }
+
+            completion(humanResults)
+        }
+    }
+
+    // MARK: - Networking
+
+    private static func fetch<T: Decodable>(
+        url: URL,
+        as type: T.Type,
+        completion: @escaping (T?) -> Void
+    ) {
+        URLSession.shared
+            .dataTask(with: request(for: url)) { data, _, error in
+                guard
+                    let data,
+                    error == nil
+                else {
+                    Task { @MainActor in
+                        completion(nil)
+                    }
+
+                    return
+                }
+
                 do {
                     let decoded = try JSONDecoder().decode(
-                        WikidataEntitiesResponse.self,
+                        T.self,
                         from: data
                     )
-                    let humanIDs = Set(
-                        decoded.entities
-                            .filter { $0.value.isHuman }
-                            .map(\.key)
-                    )
-                    let humanResults = results.filter { humanIDs.contains($0.id) }
-                    completion(humanResults)
+
+                    Task { @MainActor in
+                        completion(decoded)
+                    }
                 } catch {
-                    completion([])
+                    Task { @MainActor in
+                        completion(nil)
+                    }
                 }
             }
-        }.resume()
+            .resume()
     }
+
+    private static func makeSearchURL(
+        query: String
+    ) -> URL? {
+        var components = URLComponents(
+            string: baseURL
+        )
+
+        components?.queryItems = [
+            URLQueryItem(
+                name: "action",
+                value: "wbsearchentities"
+            ),
+            URLQueryItem(
+                name: "search",
+                value: query
+            ),
+            URLQueryItem(
+                name: "language",
+                value: "en"
+            ),
+            URLQueryItem(
+                name: "format",
+                value: "json"
+            ),
+            URLQueryItem(
+                name: "type",
+                value: "item"
+            ),
+            URLQueryItem(
+                name: "limit",
+                value: "20"
+            ),
+        ]
+
+        return components?.url
+    }
+
+    private static func makeEntitiesURL(
+        ids: [String],
+        properties: String,
+        languages: String? = nil
+    ) -> URL? {
+        var components = URLComponents(
+            string: baseURL
+        )
+
+        var queryItems = [
+            URLQueryItem(
+                name: "action",
+                value: "wbgetentities"
+            ),
+            URLQueryItem(
+                name: "ids",
+                value: ids.joined(separator: "|")
+            ),
+            URLQueryItem(
+                name: "props",
+                value: properties
+            ),
+            URLQueryItem(
+                name: "format",
+                value: "json"
+            ),
+        ]
+
+        if let languages {
+            queryItems.append(
+                URLQueryItem(
+                    name: "languages",
+                    value: languages
+                )
+            )
+        }
+
+        components?.queryItems = queryItems
+
+        return components?.url
+    }
+
+    private static func request(
+        for url: URL
+    ) -> URLRequest {
+        var request = URLRequest(url: url)
+
+        request.setValue(
+            "DiscoverContemporaries/1.0 (student project)",
+            forHTTPHeaderField: "User-Agent"
+        )
+
+        return request
+    }
+
+    // MARK: - Formatting
+
+    private static func commonsImageURL(
+        for fileName: String
+    ) -> URL? {
+        guard
+            let encodedFileName = fileName.addingPercentEncoding(
+                withAllowedCharacters: .urlPathAllowed
+            )
+        else {
+            return nil
+        }
+
+        return URL(
+            string:
+                "https://commons.wikimedia.org/wiki/Special:FilePath/\(encodedFileName)?width=500"
+        )
+    }
+
+    fileprivate static func parseWikidataTime(
+        _ time: String
+    ) -> Date? {
+        let trimmed =
+            time.hasPrefix("+")
+            ? String(time.dropFirst())
+            : time
+
+        guard
+            let datePart =
+                trimmed
+                .split(separator: "T")
+                .first
+        else {
+            return nil
+        }
+
+        return wikidataDateFormatter.date(
+            from: String(datePart)
+        )
+    }
+
+    private static let wikidataDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+
+        formatter.locale = Locale(
+            identifier: "en_US_POSIX"
+        )
+
+        formatter.calendar = Calendar(
+            identifier: .gregorian
+        )
+
+        formatter.dateFormat = "yyyy-MM-dd"
+
+        return formatter
+    }()
 }
+
+// MARK: - Figure Details
+
+struct WikidataFigureDetails {
+    let birthDate: Date?
+    let deathDate: Date?
+    let portraitURL: URL?
+    let countryID: String?
+}
+
+// MARK: - Wikidata Response Models
 
 private struct WikidataEntitiesResponse: Decodable {
     let entities: [String: WikidataEntity]
@@ -334,13 +367,19 @@ private struct WikidataEntity: Decodable {
 
     var isHuman: Bool {
         claims?["P31"]?.contains { claim in
-            claim.mainsnak.datavalue?.value?.id == "Q5"
+            claim.mainsnak
+                .datavalue?
+                .value?
+                .id == "Q5"
         } ?? false
     }
 
     var countryIDs: [String] {
         claims?["P27"]?.compactMap { claim in
-            claim.mainsnak.datavalue?.value?.id
+            claim.mainsnak
+                .datavalue?
+                .value?
+                .id
         } ?? []
     }
 
@@ -349,22 +388,46 @@ private struct WikidataEntity: Decodable {
     }
 
     var portraitFileName: String? {
-        claims?["P18"]?.compactMap { claim in
-            claim.mainsnak.datavalue?.stringValue
-        }.first
+        claims?["P18"]?
+            .compactMap { claim in
+                claim.mainsnak
+                    .datavalue?
+                    .stringValue
+            }
+            .first
     }
-    
+
     var birthDate: Date? {
-        guard let time = claims?["P569"]?.compactMap({ $0.mainsnak.datavalue?.value?.time }).first else {
+        guard
+            let time = claims?["P569"]?
+                .compactMap({
+                    $0.mainsnak
+                        .datavalue?
+                        .value?
+                        .time
+                })
+                .first
+        else {
             return nil
         }
+
         return WikidataAPI.parseWikidataTime(time)
     }
 
     var deathDate: Date? {
-        guard let time = claims?["P570"]?.compactMap({ $0.mainsnak.datavalue?.value?.time }).first else {
+        guard
+            let time = claims?["P570"]?
+                .compactMap({
+                    $0.mainsnak
+                        .datavalue?
+                        .value?
+                        .time
+                })
+                .first
+        else {
             return nil
         }
+
         return WikidataAPI.parseWikidataTime(time)
     }
 }
@@ -390,9 +453,19 @@ private struct WikidataDataValue: Decodable {
     }
 
     init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        value = try? container.decode(WikidataEntityValue.self, forKey: .value)
-        stringValue = try? container.decode(String.self, forKey: .value)
+        let container = try decoder.container(
+            keyedBy: CodingKeys.self
+        )
+
+        value = try? container.decode(
+            WikidataEntityValue.self,
+            forKey: .value
+        )
+
+        stringValue = try? container.decode(
+            String.self,
+            forKey: .value
+        )
     }
 }
 

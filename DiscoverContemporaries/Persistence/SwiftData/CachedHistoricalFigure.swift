@@ -13,8 +13,7 @@ final class CachedHistoricalFigure {
     var birthDate: Date?
     var deathDate: Date?
     
-    var country: String?
-    var placeOfBirth: String?
+    var birthPlace: String?
     var imageURL: String?
     var imageName: String?
     
@@ -31,8 +30,7 @@ final class CachedHistoricalFigure {
         gender: String? = nil,
         birthDate: Date? = nil,
         deathDate: Date? = nil,
-        country: String? = nil,
-        placeOfBirth: String? = nil,
+        birthPlace: String? = nil,
         imageURL: String? = nil,
         imageName: String? = nil,
         occupations: [String] = [],
@@ -44,8 +42,7 @@ final class CachedHistoricalFigure {
         self.gender = gender
         self.birthDate = birthDate
         self.deathDate = deathDate
-        self.country = country
-        self.placeOfBirth = placeOfBirth
+        self.birthPlace = birthPlace
         self.imageURL = imageURL
         self.imageName = imageName
         self.occupations = occupations
@@ -63,13 +60,9 @@ extension CachedHistoricalFigure {
             name: figure.name,
             descriptionText: figure.descriptionText,
             gender: figure.gender,
-            
             birthDate: figure.birthDate,
             deathDate: figure.deathDate,
-            
-            country: figure.country,
-            placeOfBirth: figure.placeOfBirth,
-            
+            birthPlace: figure.birthPlace,
             imageURL: figure.imageURL?.absoluteString,
             imageName: figure.imageName,
             occupations: figure.occupations,
@@ -83,24 +76,27 @@ extension CachedHistoricalFigure {
             name: name,
             descriptionText: descriptionText,
             gender: gender,
-            
+            birthPlace: birthPlace,
             birthDate: birthDate,
             deathDate: deathDate,
-            
-            country: country,
-            placeOfBirth: placeOfBirth,
             occupations: occupations,
             movements: movements,
-            imageURL: imageURL.flatMap { URL(string: $0) },
+            imageURL: imageURL.flatMap(URL.init(string:)),
             imageName: imageName
         )
     }
-}
 
-//https://www.wikidata.org/w/api.php
-//?action=wbsearchentities
-//&search=Napoleon
-//&language=en
-//&format=json
-//&type=item
-//&limit=10
+    func update(from figure: HistoricalFigure) {
+        name = figure.name
+        descriptionText = figure.descriptionText
+        gender = figure.gender
+        birthDate = figure.birthDate
+        deathDate = figure.deathDate
+        birthPlace = figure.birthPlace
+        imageURL = figure.imageURL?.absoluteString
+        imageName = figure.imageName
+        occupations = figure.occupations
+        movements = figure.movements
+        cachedAt = Date()
+    }
+}

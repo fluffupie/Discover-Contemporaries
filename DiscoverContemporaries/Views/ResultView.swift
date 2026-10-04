@@ -75,7 +75,7 @@ struct ResultView: View {
                             .offset(x: 20, y: -35)
                     }
                     
-                    Text(figure.occupations.first ?? figure.country ?? "Historical figure")
+                    Text(figure.occupations.first ?? figure.birthPlace ?? "Historical figure")
                         .font(Font.custom("Inter", size: 14).weight(.medium))
                         .foregroundColor(.black)
                         .offset(x: 25, y: -30)

@@ -19,10 +19,12 @@ enum FigureDataSeeder {
     }
 
     private static func loadSeedData() throws -> FigureSeedData {
-        guard let url = Bundle.main.url(
-            forResource: "FiguresData",
-            withExtension: "json"
-        ) else {
+        guard
+            let url = Bundle.main.url(
+                forResource: "FiguresData",
+                withExtension: "json"
+            )
+        else {
             throw SeedError.missingFiguresData
         }
 
@@ -30,34 +32,11 @@ enum FigureDataSeeder {
         return try JSONDecoder().decode(FigureSeedData.self, from: data)
     }
 
-    private static func parseDate(_ text: String?) -> Date? {
-        guard let text, !text.isEmpty else {
-            return nil
-        }
-
-        return dateFormatter.date(from: text)
-    }
-
-    private static func parseURL(_ text: String?) -> URL? {
-        guard let text, !text.isEmpty else {
-            return nil
-        }
-
-        return URL(string: text)
-    }
-
-    private static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter
-    }()
-
     private enum SeedError: Error {
         case missingFiguresData
     }
 
+    // MARK: - Seed Models
     private struct FigureSeedData: Decodable {
         let figures: [FigureSeed]
     }
@@ -69,8 +48,7 @@ enum FigureDataSeeder {
         let gender: String?
         let birthDate: String?
         let deathDate: String?
-        let country: String?
-        let placeOfBirth: String?
+        let birthPlace: String?
         let occupations: [String]
         let movements: [String]
         let imageURL: String?
@@ -82,15 +60,38 @@ enum FigureDataSeeder {
                 name: name,
                 descriptionText: descriptionText,
                 gender: gender,
-                birthDate: FigureDataSeeder.parseDate(birthDate),
-                deathDate: FigureDataSeeder.parseDate(deathDate),
-                country: country,
-                placeOfBirth: placeOfBirth,
+                birthPlace: birthPlace,
+                birthDate: Self.parseDate(birthDate),
+                deathDate: Self.parseDate(deathDate),
                 occupations: occupations,
                 movements: movements,
-                imageURL: FigureDataSeeder.parseURL(imageURL),
+                imageURL: Self.parseURL(imageURL),
                 imageName: imageName
             )
         }
+
+        private static func parseDate(_ text: String?) -> Date? {
+            guard let text, !text.isEmpty else {
+                return nil
+            }
+
+            return dateFormatter.date(from: text)
+        }
+
+        private static func parseURL(_ text: String?) -> URL? {
+            guard let text, !text.isEmpty else {
+                return nil
+            }
+
+            return URL(string: text)
+        }
+
+        private static let dateFormatter: DateFormatter = {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.calendar = Calendar(identifier: .gregorian)
+            formatter.dateFormat = "yyyy-MM-dd"
+            return formatter
+        }()
     }
 }

@@ -36,17 +36,13 @@ extension Color {
     )
 }
 
-extension Font {
-    static let h1Title = Font.title
-    static let welcomeTitle = Font.custom("AlegreyaSansSC-Regular", size: 24, relativeTo: .title2)
-}
 extension View {
     func h1NavigationTitle(_ title: String) -> some View {
         navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text(title)
-                        .font(.h1Title)
+                        .font(.title)
                         .tracking(1.2)
                         .foregroundStyle(Color.primaryText)
                 }
