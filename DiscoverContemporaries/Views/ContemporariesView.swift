@@ -14,33 +14,39 @@ struct ContemporariesView: View {
                 ProgressView()
 
             } else if let error =
-                model.errorMessage {
+                model.errorMessage
+            {
                 Text(error)
 
             } else {
-                List(model.figures) { contemporary in
-                    NavigationLink {
-                        ProfileView(
-                            figure: contemporary.historicalFigure
-                        )
-                    } label: {
-                        VStack(
-                            alignment: .leading,
-                            spacing: 4
-                        ) {
-                            Text(contemporary.name)
-                                .font(.headline)
-
-                            Text(
-                                lifespanText(
-                                    for: contemporary
+                List {
+                    Section() {
+                        ForEach(model.figures) { contemporary in
+                            NavigationLink {
+                                ProfileView(
+                                    figure: contemporary.historicalFigure
                                 )
-                            )
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            } label: {
+                                VStack(
+                                    alignment: .leading,
+                                    spacing: 4
+                                ) {
+                                    Text(contemporary.name)
+                                        .font(.headline)
+
+                                    Text(
+                                        lifespanText(
+                                            for: contemporary
+                                        )
+                                    )
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                }
+                            }
                         }
                     }
                 }
+                .listStyle(.plain)
             }
         }
         .navigationTitle(
@@ -56,27 +62,14 @@ struct ContemporariesView: View {
     private func lifespanText(
         for figure: ContemporaryFigure
     ) -> String {
-        guard
-            let birth = figure.birthDate
-        else {
+        guard let birth = figure.birthDate else {
             return "Unknown"
         }
-
-        let formatter =
-            HistoricalFigure
-                .displayDateFormatter
-
-        let birthText =
-            formatter.string(from: birth)
-
-        guard
-            let death = figure.deathDate
-        else {
+        let formatter = HistoricalFigure.displayDateFormatter
+        let birthText = formatter.string(from: birth)
+        guard let death = figure.deathDate else {
             return "\(birthText) - Present"
         }
-
-        return """
-        \(birthText) - \(formatter.string(from: death))
-        """
+        return "\(birthText) - \(formatter.string(from: death))"
     }
 }

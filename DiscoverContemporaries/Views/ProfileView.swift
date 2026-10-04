@@ -114,12 +114,23 @@ struct ProfileView: View {
                 }
             }
             .padding(.horizontal, 24)
-            .padding(.top, 10)
+            .padding(.top, 6)
             .padding(.bottom, 28)
         }
         .background(Color.appBackground)
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
+                    SearchAndCompareView(firstFigure: model.figure)
+                } label: {
+                    Image(systemName: "arrow.left.and.right")
+                        .font(.system(size: 16, weight: .semibold))
+                        .accessibilityLabel("Compare with someone")
+                }
+            }
+        }
         .task {
             let repository =
                 FigureCacheRepository(
@@ -322,3 +333,4 @@ private struct FactRow: View {
         }
     }
 }
+

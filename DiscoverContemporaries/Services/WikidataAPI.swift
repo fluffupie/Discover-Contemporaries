@@ -172,53 +172,48 @@ struct WikidataAPI {
                 return
             }
 
-            do {
-                let response =
-                    try JSONDecoder().decode(
-                        SPARQLResponse.self,
-                        from: data
+            Task { @MainActor in
+                do {
+                    let response =
+                        try JSONDecoder().decode(
+                            SPARQLResponse.self,
+                            from: data
+                        )
+
+                    let contemporaries =
+                        response.results.bindings
+                            .compactMap { binding -> ContemporaryFigure? in
+                                makeContemporary(
+                                    from: binding,
+                                    targetBirthDate: birthDate,
+                                    targetDeathDate: deathDate
+                                )
+                            }
+
+                    print(
+                        "Found \(contemporaries.count) contemporaries for \(figure.name)"
                     )
 
-                let contemporaries =
-                    response.results.bindings
-                        .compactMap {
-                            binding
-                            -> ContemporaryFigure? in
-
-                            makeContemporary(
-                                from: binding,
-                                targetBirthDate: birthDate,
-                                targetDeathDate: deathDate
-                            )
-                        }
-
-                print(
-                    "Found \(contemporaries.count) contemporaries for \(figure.name)"
-                )
-
-                Task { @MainActor in
                     completion(
                         Array(
                             contemporaries.prefix(20)
                         )
                     )
-                }
 
-            } catch {
-                print(
-                    "Failed to decode contemporaries: \(error)"
-                )
-
-                if let responseText = String(
-                    data: data,
-                    encoding: .utf8
-                ) {
+                } catch {
                     print(
-                        "SPARQL response: \(responseText.prefix(500))"
+                        "Failed to decode contemporaries: \(error)"
                     )
-                }
 
-                Task { @MainActor in
+                    if let responseText = String(
+                        data: data,
+                        encoding: .utf8
+                    ) {
+                        print(
+                            "SPARQL response: \(responseText.prefix(500))"
+                        )
+                    }
+
                     completion([])
                 }
             }
@@ -692,7 +687,7 @@ struct WikidataAPI {
 
     // MARK: - Wikimedia Image
 
-    private static func commonsImageURL(
+    nonisolated private static func commonsImageURL(
         for fileName: String
     ) -> URL? {
         guard
@@ -943,3 +938,4 @@ private struct SPARQLBinding: Decodable {
 private struct SPARQLValue: Decodable {
     let value: String
 }
+
