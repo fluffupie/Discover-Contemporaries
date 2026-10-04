@@ -35,7 +35,7 @@ struct LifespanCompareView: View {
                 )
 
                 Text(firstFigure.name)
-                    .font(.h1Title)
+                    .font(.title)
                     .tracking(1.2)
                     .foregroundStyle(Color.compareRed)
                     .multilineTextAlignment(.center)
@@ -57,7 +57,7 @@ struct LifespanCompareView: View {
                 )
 
                 Text(secondFigure.name)
-                    .font(.h1Title)
+                    .font(.title)
                     .tracking(1.2)
                     .foregroundStyle(Color.compareGreen)
                     .multilineTextAlignment(.center)
@@ -68,7 +68,7 @@ struct LifespanCompareView: View {
                         .foregroundStyle(Color.compareGold)
 
                     Text("They Were On The Earth Together For")
-                        .font(.h1Title)
+                        .font(.title)
                         .tracking(1.1)
                         .foregroundStyle(Color.primaryText)
                         .multilineTextAlignment(.center)

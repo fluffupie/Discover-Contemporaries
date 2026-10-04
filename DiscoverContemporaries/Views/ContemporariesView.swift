@@ -1,31 +1,82 @@
 import SwiftUI
 
 struct ContemporariesView: View {
+
     let figure: HistoricalFigure
 
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 14) {
-                Text(figure.name)
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundStyle(Color.primaryText)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .multilineTextAlignment(.center)
+    @StateObject
+    private var model =
+        ContemporariesViewModel()
 
-                // TODO: Populate this from Wikidata lifespan data once contemporaries discovery is implemented.
-                Text("Contemporaries discovery is not implemented for Wikidata figures yet.")
-                    .font(.caption)
-                    .foregroundStyle(Color.secondaryText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(12)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+    var body: some View {
+        Group {
+            if model.isLoading {
+                ProgressView()
+
+            } else if let error =
+                model.errorMessage {
+                Text(error)
+
+            } else {
+                List(model.figures) { contemporary in
+                    NavigationLink {
+                        ProfileView(
+                            figure: contemporary.historicalFigure
+                        )
+                    } label: {
+                        VStack(
+                            alignment: .leading,
+                            spacing: 4
+                        ) {
+                            Text(contemporary.name)
+                                .font(.headline)
+
+                            Text(
+                                lifespanText(
+                                    for: contemporary
+                                )
+                            )
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+                }
             }
-            .padding(.horizontal, 28)
-            .padding(.top, 16)
-            .padding(.bottom, 26)
         }
-        .background(Color.appBackground)
-        .navigationTitle("Contemporaries")
-        .navigationBarTitleDisplayMode(.inline)    }
+        .navigationTitle(
+            "Contemporaries"
+        )
+        .task {
+            model.load(
+                for: figure
+            )
+        }
+    }
+
+    private func lifespanText(
+        for figure: ContemporaryFigure
+    ) -> String {
+        guard
+            let birth = figure.birthDate
+        else {
+            return "Unknown"
+        }
+
+        let formatter =
+            HistoricalFigure
+                .displayDateFormatter
+
+        let birthText =
+            formatter.string(from: birth)
+
+        guard
+            let death = figure.deathDate
+        else {
+            return "\(birthText) - Present"
+        }
+
+        return """
+        \(birthText) - \(formatter.string(from: death))
+        """
+    }
 }
