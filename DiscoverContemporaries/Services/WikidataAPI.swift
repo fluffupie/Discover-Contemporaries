@@ -62,6 +62,49 @@ struct WikidataAPI {
             }
         }
     }
+    
+    static func fetchLifespan(
+        forID id: String,
+        completion: @escaping (Date?, Date?) -> Void
+    ) {
+        var components = URLComponents(
+            string: "https://www.wikidata.org/w/api.php"
+        )!
+
+        components.queryItems = [
+            URLQueryItem(name: "action", value: "wbgetentities"),
+            URLQueryItem(name: "ids", value: id),
+            URLQueryItem(name: "props", value: "claims"),
+            URLQueryItem(name: "format", value: "json")
+        ]
+
+        guard let url = components.url else {
+            completion(nil, nil)
+            return
+        }
+
+        URLSession.shared.dataTask(with: request(for: url)) { data, _, error in
+            guard let data = data, error == nil else {
+                completion(nil, nil)
+                return
+            }
+
+            Task { @MainActor in
+                do {
+                    let decoded = try JSONDecoder().decode(
+                        WikidataEntitiesResponse.self,
+                        from: data
+                    )
+                    let entity = decoded.entities[id]
+                    let birth = entity?.birthDate
+                    let death = entity?.deathDate
+                    completion(birth, death)
+                } catch {
+                    completion(nil, nil)
+                }
+            }
+        }.resume()
+    }
 
     static func fetchPortraitURL(
         forID id: String,
@@ -210,6 +253,22 @@ struct WikidataAPI {
         )
         return request
     }
+    
+    fileprivate static func parseWikidataTime(_ time: String) -> Date? {
+        // Wikidata time format example: "+1879-03-14T00:00:00Z"
+        let trimmed = time.hasPrefix("+") ? String(time.dropFirst()) : time
+        guard let datePart = trimmed.split(separator: "T").first else { return nil }
+        let dateString = String(datePart)
+        return wikidataDateFormatter.date(from: dateString)
+    }
+    
+    private static let wikidataDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
 
     private static func filterHumanResults(
         _ results: [WikidataSearchResult],
@@ -294,6 +353,20 @@ private struct WikidataEntity: Decodable {
             claim.mainsnak.datavalue?.stringValue
         }.first
     }
+    
+    var birthDate: Date? {
+        guard let time = claims?["P569"]?.compactMap({ $0.mainsnak.datavalue?.value?.time }).first else {
+            return nil
+        }
+        return WikidataAPI.parseWikidataTime(time)
+    }
+
+    var deathDate: Date? {
+        guard let time = claims?["P570"]?.compactMap({ $0.mainsnak.datavalue?.value?.time }).first else {
+            return nil
+        }
+        return WikidataAPI.parseWikidataTime(time)
+    }
 }
 
 private struct WikidataLabel: Decodable {
@@ -325,4 +398,5 @@ private struct WikidataDataValue: Decodable {
 
 private struct WikidataEntityValue: Decodable {
     let id: String?
+    let time: String?
 }

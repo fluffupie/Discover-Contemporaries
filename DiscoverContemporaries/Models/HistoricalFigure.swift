@@ -72,7 +72,7 @@ struct HistoricalFigure: Decodable, Identifiable {
         .localizedCaseInsensitiveContains(query)
     }
 
-    private static let displayDateFormatter: DateFormatter = {
+    static let displayDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.calendar = Calendar(identifier: .gregorian)
@@ -80,3 +80,4 @@ struct HistoricalFigure: Decodable, Identifiable {
         return formatter
     }()
 }
+

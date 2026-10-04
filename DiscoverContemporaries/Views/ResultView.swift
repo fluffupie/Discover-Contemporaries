@@ -2,6 +2,13 @@ import SwiftUI
 
 struct ResultView: View {
     let figure: HistoricalFigure
+    
+    private var ageText: String {
+        guard let birth = figure.birthDate else { return "Unknown age" }
+        let end = figure.deathDate ?? Date()
+        let years = Calendar.current.dateComponents([.year], from: birth, to: end).year ?? 0
+        return years == 1 ? "1 year" : "\(years) years"
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -62,7 +69,7 @@ struct ResultView: View {
                             .frame(width: 5, height: 5)
                             .background(Color(red: 0.62, green: 0.11, blue: 0.14))
                             .offset(x: 15, y: -35)
-                        Text(figure.ageText)
+                        Text(ageText)
                             .font(Font.custom("Inter", size: 14).weight(.medium))
                             .foregroundColor(.black)
                             .offset(x: 20, y: -35)

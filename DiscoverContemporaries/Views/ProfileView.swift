@@ -8,6 +8,10 @@ struct ProfileView: View {
 
     @State private var resolvedImageName: String?
     @State private var resolvedImageURL: URL?
+    
+    @State private var resolvedCountry: String?
+    @State private var resolvedBirthDate: Date?
+    @State private var resolvedDeathDate: Date?
 
     private var profileImageName: String? {
         resolvedImageName ?? figure.imageName
@@ -22,7 +26,7 @@ struct ProfileView: View {
     }
 
     private var countryText: String {
-        figure.country ?? "Unknown country"
+        resolvedCountry ?? figure.country ?? "Unknown country"
     }
 
     private var birthplaceText: String {
@@ -31,6 +35,16 @@ struct ProfileView: View {
 
     private var movementsText: String {
         figure.movements.isEmpty ? "No movement listed" : figure.movements.joined(separator: ", ")
+    }
+
+    private var resolvedLifespanText: String {
+        let birth = resolvedBirthDate ?? figure.birthDate
+        let death = resolvedDeathDate ?? figure.deathDate
+        guard let birth else { return "Unknown" }
+        let birthText = HistoricalFigure.displayDateFormatter.string(from: birth)
+        guard let death else { return "\(birthText) - Present" }
+        let deathText = HistoricalFigure.displayDateFormatter.string(from: death)
+        return "\(birthText) - \(deathText)"
     }
 
     private func loadPortraitImage() {
@@ -53,10 +67,102 @@ struct ProfileView: View {
             resolvedImageURL = imageURL
         }
     }
+    
+    private func loadCountry() {
+        // If we already have a country displayed, no work needed
+        if resolvedCountry != nil || figure.country != nil {
+            return
+        }
+
+        let repository = FigureCacheRepository(context: modelContext)
+
+        // Try cache first
+        if let cachedFigure = try? repository.fetchFigure(withID: figure.id),
+           let cachedCountry = cachedFigure.country {
+            resolvedCountry = cachedCountry
+            return
+        }
+
+        // Fetch from network and persist
+        WikidataAPI.fetchCountryName(for: figure) { country in
+            guard let country else { return }
+
+            // Update UI immediately
+            resolvedCountry = country
+
+            // Persist enriched figure
+            let updated = HistoricalFigure(
+                id: figure.id,
+                name: figure.name,
+                descriptionText: figure.descriptionText,
+                gender: figure.gender,
+                birthDate: figure.birthDate,
+                deathDate: figure.deathDate,
+                country: country,
+                placeOfBirth: figure.placeOfBirth,
+                occupations: figure.occupations,
+                movements: figure.movements,
+                imageURL: figure.imageURL,
+                imageName: figure.imageName
+            )
+
+            do {
+                try repository.save(updated)
+            } catch {
+                print("Failed to cache updated figure with country: \(error)")
+            }
+        }
+    }
+
+    private func loadLifespan() {
+        // If already have dates resolved or present on figure, no work needed
+        if (resolvedBirthDate != nil || figure.birthDate != nil) &&
+            (resolvedDeathDate != nil || figure.deathDate != nil) {
+            return
+        }
+
+        let repository = FigureCacheRepository(context: modelContext)
+
+        // Try cache first
+        if let cached = try? repository.fetchFigure(withID: figure.id) {
+            if let b = cached.birthDate { resolvedBirthDate = b }
+            if let d = cached.deathDate { resolvedDeathDate = d }
+            if resolvedBirthDate != nil || resolvedDeathDate != nil { return }
+        }
+
+        // Fetch from network
+        WikidataAPI.fetchLifespan(forID: figure.id) { birth, death in
+            // Update UI immediately
+            if resolvedBirthDate == nil { resolvedBirthDate = birth }
+            if resolvedDeathDate == nil { resolvedDeathDate = death }
+
+            // Persist enriched figure
+            let updated = HistoricalFigure(
+                id: figure.id,
+                name: figure.name,
+                descriptionText: figure.descriptionText,
+                gender: figure.gender,
+                birthDate: birth ?? figure.birthDate,
+                deathDate: death ?? figure.deathDate,
+                country: resolvedCountry ?? figure.country,
+                placeOfBirth: figure.placeOfBirth,
+                occupations: figure.occupations,
+                movements: figure.movements,
+                imageURL: figure.imageURL,
+                imageName: figure.imageName
+            )
+
+            do {
+                try repository.save(updated)
+            } catch {
+                print("Failed to cache updated figure lifespan: \(error)")
+            }
+        }
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 24) {
                 ProfileHero(
                     figure: figure,
                     imageName: profileImageName,
@@ -68,14 +174,12 @@ struct ProfileView: View {
                 ProfileSection(title: "Summary") {
                     Text(figure.descriptionText ?? "No description available yet.")
                         .font(.system(.body, design: .serif))
-                        .foregroundStyle(Color.primaryText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
                 ProfileSection(title: "Details") {
                     VStack(spacing: 10) {
-                        FactRow(icon: "calendar", label: "Lifespan", value: figure.lifespan)
-                        FactRow(icon: "hourglass", label: "Age", value: figure.ageText)
+                        FactRow(icon: "calendar", label: "Lifespan", value: resolvedLifespanText)
                         FactRow(icon: "mappin.and.ellipse", label: "Birthplace", value: birthplaceText)
                         FactRow(icon: "globe", label: "Country", value: countryText)
                         FactRow(icon: "sparkles", label: "Movement", value: movementsText)
@@ -104,12 +208,14 @@ struct ProfileView: View {
                 }
             }
             .padding(.horizontal, 24)
-            .padding(.top, 16)
+            .padding(.top, 10)
             .padding(.bottom, 28)
         }
         .background(Color.appBackground)
         .task {
             loadPortraitImage()
+            loadCountry()
+            loadLifespan()
         }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
@@ -124,7 +230,7 @@ private struct ProfileHero: View {
     let countryText: String
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 20) {
             PortraitImage(imageName: imageName, imageURL: imageURL)
                 .frame(width: 154, height: 154)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -150,14 +256,8 @@ private struct ProfileHero: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 18)
+        .padding(.vertical, 10)
         .padding(.horizontal, 14)
-        .background(Color.white.opacity(0.72))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.black.opacity(0.06), lineWidth: 1)
-        )
     }
 }
 
@@ -167,12 +267,11 @@ private struct ProfilePill: View {
 
     var body: some View {
         Label(text.uppercased(), systemImage: systemImage)
-            .font(Font.custom("AlegreyaSansSC-Regular", size: 13).weight(.medium))
-            .foregroundStyle(Color.ochre)
+            .font(.caption)
             .lineLimit(1)
             .minimumScaleFactor(0.8)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
             .background(Color.ochre.opacity(0.08))
             .clipShape(Capsule())
     }
@@ -186,18 +285,9 @@ private struct ProfileSection<Content: View>: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.headline)
-                .foregroundStyle(Color.primaryText)
-
             content
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(Color.white.opacity(0.78))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.black.opacity(0.06), lineWidth: 1)
-        )
     }
 }
 
