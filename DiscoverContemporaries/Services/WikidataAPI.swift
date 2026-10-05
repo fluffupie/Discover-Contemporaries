@@ -302,6 +302,218 @@ struct WikidataAPI {
         return formatter
     }()
 
+    // MARK: - Continent Top Figures
+
+    static func fetchTopFigures(
+        forContinentID id: String,
+        completion: @escaping ([HistoricalFigure]) -> Void
+    ) {
+        let query = """
+        SELECT DISTINCT ?person ?personLabel ?birth ?death ?sitelinks WHERE {
+          VALUES ?continent { wd:\(id) }
+
+          # Countries on the target continent
+          ?country wdt:P31 wd:Q6256 ;
+                   wdt:P30 ?continent .
+
+          # Humans with sufficient popularity (sitelinks)
+          ?person wdt:P31 wd:Q5 ;
+                  wikibase:sitelinks ?sitelinks .
+
+          FILTER(?sitelinks >= 100)
+
+          OPTIONAL { ?person wdt:P569 ?birth. }
+          OPTIONAL { ?person wdt:P570 ?death. }
+
+            ?person wdt:P19 ?place .
+            ?place wdt:P17 ?country .
+
+
+          hint:Prior hint:rangeSafe true.
+
+          SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+        }
+        LIMIT 10
+        """
+
+        guard var components = URLComponents(string: sparqlURL) else {
+            completion([])
+            return
+        }
+
+        components.queryItems = [
+            URLQueryItem(name: "query", value: query),
+            URLQueryItem(name: "format", value: "json")
+        ]
+
+        guard let url = components.url else {
+            completion([])
+            return
+        }
+
+        var request = request(for: url)
+        request.timeoutInterval = 60
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error {
+                print("Continent top figures request failed: \(error)")
+                Task { @MainActor in completion([]) }
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    print("Continent top figures HTTP error: \(httpResponse.statusCode)")
+                    Task { @MainActor in completion([]) }
+                    return
+                }
+            }
+
+            guard let data else {
+                Task { @MainActor in completion([]) }
+                return
+            }
+
+            Task { @MainActor in
+                do {
+                    let response = try JSONDecoder().decode(SPARQLResponse.self, from: data)
+
+                    let figures: [HistoricalFigure] = response.results.bindings.compactMap { binding in
+                        guard let id = wikidataID(from: binding.person.value) else { return nil }
+
+                        let birth = binding.birth.flatMap { parseSPARQLDate($0.value) }
+                        let death = binding.death.flatMap { parseSPARQLDate($0.value) }
+
+                        return HistoricalFigure(
+                            id: id,
+                            name: binding.personLabel.value,
+                            descriptionText: nil,
+                            gender: nil,
+                            birthPlace: nil,
+                            birthDate: birth,
+                            deathDate: death,
+                            occupations: [],
+                            movements: [],
+                            imageURL: nil,
+                            imageName: nil
+                        )
+                    }
+
+                    completion(figures)
+                } catch {
+                    print("Failed to decode continent top figures: \(error)")
+                    if let responseText = String(data: data, encoding: .utf8) {
+                        print("SPARQL response: \(responseText.prefix(500))")
+                    }
+                    completion([])
+                }
+            }
+        }.resume()
+    }
+
+    // MARK: - Occupation Top Figures
+
+    static func fetchTopFigures(
+        forOccupationID id: String,
+        completion: @escaping ([HistoricalFigure]) -> Void
+    ) {
+        let query = """
+        SELECT DISTINCT ?person ?personLabel ?birth ?death ?sitelinks WHERE {
+          ?person wdt:P31 wd:Q5 ;
+                  wikibase:sitelinks ?sitelinks ;
+                  wdt:P106 ?occ .
+
+          # Include subclasses of the requested occupation
+          ?occ wdt:P279* wd:\(id) .
+
+          FILTER(?sitelinks >= 100)
+
+          OPTIONAL { ?person wdt:P569 ?birth. }
+          OPTIONAL { ?person wdt:P570 ?death. }
+
+          hint:Prior hint:rangeSafe true.
+
+          SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+        }
+        ORDER BY DESC(?sitelinks)
+        LIMIT 20
+        """
+
+        guard var components = URLComponents(string: sparqlURL) else {
+            completion([])
+            return
+        }
+
+        components.queryItems = [
+            URLQueryItem(name: "query", value: query),
+            URLQueryItem(name: "format", value: "json")
+        ]
+
+        guard let url = components.url else {
+            completion([])
+            return
+        }
+
+        var request = request(for: url)
+        request.timeoutInterval = 60
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error {
+                print("Occupation top figures request failed: \(error)")
+                Task { @MainActor in completion([]) }
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    print("Occupation top figures HTTP error: \(httpResponse.statusCode)")
+                    Task { @MainActor in completion([]) }
+                    return
+                }
+            }
+
+            guard let data else {
+                Task { @MainActor in completion([]) }
+                return
+            }
+
+            Task { @MainActor in
+                do {
+                    let response = try JSONDecoder().decode(SPARQLResponse.self, from: data)
+
+                    let figures: [HistoricalFigure] = response.results.bindings.compactMap { binding in
+                        guard let id = wikidataID(from: binding.person.value) else { return nil }
+
+                        let birth = binding.birth.flatMap { parseSPARQLDate($0.value) }
+                        let death = binding.death.flatMap { parseSPARQLDate($0.value) }
+
+                        return HistoricalFigure(
+                            id: id,
+                            name: binding.personLabel.value,
+                            descriptionText: nil,
+                            gender: nil,
+                            birthPlace: nil,
+                            birthDate: birth,
+                            deathDate: death,
+                            occupations: [],
+                            movements: [],
+                            imageURL: nil,
+                            imageName: nil
+                        )
+                    }
+
+                    completion(figures)
+                } catch {
+                    print("Failed to decode occupation top figures: \(error)")
+                    if let responseText = String(data: data, encoding: .utf8) {
+                        print("SPARQL response: \(responseText.prefix(500))")
+                    }
+                    completion([])
+                }
+            }
+        }.resume()
+    }
+
     // MARK: - Figure Search
 
     static func fetchFigures(
