@@ -2,45 +2,28 @@ import SwiftData
 import SwiftUI
 
 struct RegionView: View {
-    @Query(sort: \CachedHistoricalFigure.name) private var cachedFigures: [CachedHistoricalFigure]
-
-    private var regions: [RegionSummary] {
-        let counts = cachedFigures.reduce(into: [String: Int]()) { result, figure in
-            guard let birthPlace = figure.birthPlace, !birthPlace.isEmpty else {
-                return
-            }
-
-            result[birthPlace, default: 0] += 1
-        }
-
-        return counts
-            .map { RegionSummary(name: $0.key, count: $0.value) }
-            .sorted { first, second in
-                if first.count == second.count {
-                    return first.name < second.name
-                }
-
-                return first.count > second.count
-            }
+    private var continents: [Continent] {
+        [
+            Continent(id: "Q15", name: "Africa"),
+            Continent(id: "Q48", name: "Asia"),
+            Continent(id: "Q46", name: "Europe"),
+            Continent(id: "Q49", name: "North America"),
+            Continent(id: "Q18", name: "South America"),
+            Continent(id: "Q538", name: "Oceania"),
+            Continent(id: "Q51", name: "Antarctica")
+        ]
     }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 12) {
-                if regions.isEmpty {
-                    MigrationPlaceholderRow(
-                        icon: "globe.americas.fill",
-                        title: "Regions unavailable",
-                        detail: "No cached countries found yet."
-                    )
-                } else {
-                    ForEach(regions) { region in
-                        CategoryListRow(
-                            icon: "globe.americas.fill",
-                            title: region.name,
-                            detail: region.countText
-                        )
+                ForEach(continents, id: \.id) { continent in
+                    NavigationLink {
+                        ContinentTopFiguresView(continent: continent)
+                    } label: {
+                        RegionRow(continent: continent)
                     }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 24)
@@ -51,15 +34,70 @@ struct RegionView: View {
         .navigationTitle("Region")
         .navigationBarTitleDisplayMode(.inline)
     }
-}
 
-private struct RegionSummary: Identifiable {
-    let name: String
-    let count: Int
+    private struct RegionRow: View {
+        let continent: Continent
 
-    var id: String { name }
+        @State private var isLoading = false
+        @State private var figures: [HistoricalFigure] = []
 
-    var countText: String {
-        count == 1 ? "1 figure" : "\(count) figures"
+        var body: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 14) {
+                    Image(systemName: "globe.americas.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Color.tealButton)
+                        .frame(width: 44, height: 44)
+
+                    Text(continent.name)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.primaryText)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.secondaryText)
+                }
+
+                Group {
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else if !figures.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                ForEach(figures) { figure in
+                                    VStack(spacing: 10) {
+                                        PortraitImage(imageName: figure.imageName, imageURL: figure.imageURL)
+                                            .frame(width: 70, height: 70)
+                                            .clipShape(RoundedRectangle(cornerRadius: 5))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .task {
+                await load()
+            }
+        }
+
+        @MainActor
+        private func load() async {
+            guard figures.isEmpty else { return }
+            isLoading = true
+            WikidataAPI.fetchTopFigures(forContinentID: continent.id) { results in
+                self.isLoading = false
+                self.figures = Array(results.prefix(4))
+            }
+        }
     }
 }
+

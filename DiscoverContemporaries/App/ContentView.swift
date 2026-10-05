@@ -17,13 +17,6 @@ struct ContentView: View {
             .tabItem {
                 Label("Explore", systemImage: "safari.fill")
             }
-
-            NavigationStack {
-                SettingsView()
-            }
-            .tabItem {
-                Label("Settings", systemImage: "gearshape.fill")
-            }
         }
         .tint(.black)
     }

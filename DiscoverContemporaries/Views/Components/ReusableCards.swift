@@ -50,7 +50,6 @@ struct CategoryTile: View {
 struct CategoryListRow: View {
     let icon: String
     let title: String
-    let detail: String
 
     var body: some View {
         HStack(spacing: 14) {
@@ -65,9 +64,6 @@ struct CategoryListRow: View {
                     .foregroundStyle(Color.primaryText)
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
-                Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(Color.secondaryText)
             }
 
             Spacer()
@@ -89,7 +85,7 @@ struct MigrationPlaceholderRow: View {
     let detail: String
 
     var body: some View {
-        CategoryListRow(icon: icon, title: title, detail: detail)
+        CategoryListRow(icon: icon, title: title)
     }
 }
 
