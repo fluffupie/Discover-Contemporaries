@@ -21,25 +21,7 @@ struct ContemporaryFigure: Identifiable {
             imageName: nil
         )
     }
-}
-
-extension ContemporaryFigure {
-
     var lifespanText: String {
-        guard let birthDate else {
-            return "Unknown"
+            historicalFigure.lifespan
         }
-
-        let formatter =
-            HistoricalFigure.displayDateFormatter
-
-        let birthText =
-            formatter.string(from: birthDate)
-
-        guard let deathDate else {
-            return "\(birthText) - Present"
-        }
-
-        return "\(birthText) - \(formatter.string(from: deathDate))"
-    }
 }

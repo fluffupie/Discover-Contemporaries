@@ -17,6 +17,13 @@ struct ContentView: View {
             .tabItem {
                 Label("Explore", systemImage: "safari.fill")
             }
+            
+            NavigationStack {
+                BookmarkView()
+            }
+            .tabItem {
+                Label("Saves", systemImage: "heart")
+            }
         }
         .tint(.black)
     }

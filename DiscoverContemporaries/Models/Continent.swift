@@ -1,6 +1,6 @@
 import Foundation
 
-struct Region: Decodable, Identifiable {
+struct Continent: Identifiable, Hashable {
     let id: String
     let name: String
 }

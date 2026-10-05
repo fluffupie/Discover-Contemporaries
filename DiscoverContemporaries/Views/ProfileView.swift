@@ -4,14 +4,11 @@ import SwiftUI
 struct ProfileView: View {
 
     @Environment(\.modelContext) private var modelContext
-
-    let figure: HistoricalFigure
-
     @StateObject private var model: ProfileViewModel
+    @State private var isBookmarked: Bool = false
+    @State private var toastMessage: String? = nil
 
     init(figure: HistoricalFigure) {
-        self.figure = figure
-
         _model = StateObject(
             wrappedValue: ProfileViewModel(
                 figure: figure
@@ -29,25 +26,17 @@ struct ProfileView: View {
                     figure: model.figure,
                     imageName: model.imageName,
                     imageURL: model.imageURL,
-                    roleLabel: model.figure.primaryOccupation,
+                    roleLabel: model.roleLabel,
                     birthPlace: model.birthPlace
                 )
 
                 ProfileSection(title: "Summary") {
-                    Text(
-                        model.figure.descriptionText
-                            ?? "No description available yet."
-                    )
-                    .font(
-                        .system(
-                            .body,
-                            design: .serif
+                    Text(model.summaryText)
+                        .font(.system(.body, design: .serif))
+                        .fixedSize(
+                            horizontal: false,
+                            vertical: true
                         )
-                    )
-                    .fixedSize(
-                        horizontal: false,
-                        vertical: true
-                    )
                 }
 
                 ProfileSection(title: "Details") {
@@ -73,7 +62,7 @@ struct ProfileView: View {
                         FactRow(
                             icon: "sparkles",
                             label: "Movement",
-                            value: model.figure.movementsText
+                            value: model.movementText
                         )
                     }
                 }
@@ -118,9 +107,47 @@ struct ProfileView: View {
             .padding(.bottom, 28)
         }
         .background(Color.appBackground)
+        .overlay(alignment: .top) {
+            if let message = model.bookmarkMessage {
+                    ToastBanner(message: message)
+                        .transition(
+                            .move(edge: .top)
+                                .combined(with: .opacity)
+                        )
+                        .zIndex(1)
+                }
+        }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    Task {
+                        await model.toggleBookmark()
+
+                        try? await Task.sleep(for: .seconds(1.8))
+                        model.clearBookmarkMessage()
+                    }
+                } label: {
+                    Image(
+                        systemName: model.isBookmarked
+                            ? "heart.fill"
+                            : "heart"
+                    )
+                    .foregroundStyle(
+                        model.isBookmarked
+                            ? Color.red
+                            : Color.primary
+                    )
+                    .font(.system(size: 16, weight: .semibold))
+                    .accessibilityLabel(
+                        model.isBookmarked
+                            ? "Remove from bookmarks"
+                            : "Save to bookmarks"
+                    )
+                }
+            }
+
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink {
                     SearchAndCompareView(firstFigure: model.figure)
@@ -132,14 +159,8 @@ struct ProfileView: View {
             }
         }
         .task {
-            let repository =
-                FigureCacheRepository(
-                    context: modelContext
-                )
-
-            model.load(
-                repository: repository
-            )
+            model.load(context: modelContext)
+            await model.loadBookmarkState()
         }
     }
 }
@@ -334,3 +355,19 @@ private struct FactRow: View {
     }
 }
 
+// MARK: - Toast Banner
+
+private struct ToastBanner: View {
+    let message: String
+
+    var body: some View {
+        Text(message)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(Color.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(Color.black.opacity(0.85))
+            .clipShape(Capsule())
+            .padding(.top, 10)
+    }
+}

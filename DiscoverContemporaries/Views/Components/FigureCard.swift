@@ -9,9 +9,8 @@ struct FigureCard: View {
                 imageName: figure.imageName,
                 imageURL: figure.imageURL
             )
-            .resizableIfPossible()
             .scaledToFill()
-            .frame(height: 140)
+            .frame(height: 160)
             .frame(maxWidth: .infinity)
             .clipped()
 
@@ -43,16 +42,5 @@ struct FigureCard: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func resizableIfPossible() -> some View {
-        if let image = self as? Image {
-            image.resizable()
-        } else {
-            self
-        }
     }
 }
