@@ -1,18 +1,15 @@
-import SwiftData
 import SwiftUI
 
 struct RegionView: View {
-    private var continents: [Continent] {
-        [
-            Continent(id: "Q15", name: "Africa"),
-            Continent(id: "Q48", name: "Asia"),
-            Continent(id: "Q46", name: "Europe"),
-            Continent(id: "Q49", name: "North America"),
-            Continent(id: "Q18", name: "South America"),
-            Continent(id: "Q538", name: "Oceania"),
-            Continent(id: "Q51", name: "Antarctica")
-        ]
-    }
+    private let continents = [
+        Continent(id: "Q15", name: "Africa"),
+        Continent(id: "Q48", name: "Asia"),
+        Continent(id: "Q46", name: "Europe"),
+        Continent(id: "Q49", name: "North America"),
+        Continent(id: "Q18", name: "South America"),
+        Continent(id: "Q538", name: "Oceania"),
+        Continent(id: "Q51", name: "Antarctica"),
+    ]
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -72,9 +69,14 @@ struct RegionView: View {
                             HStack(spacing: 10) {
                                 ForEach(figures) { figure in
                                     VStack(spacing: 10) {
-                                        PortraitImage(imageName: figure.imageName, imageURL: figure.imageURL)
-                                            .frame(width: 70, height: 70)
-                                            .clipShape(RoundedRectangle(cornerRadius: 5))
+                                        PortraitImage(
+                                            imageName: figure.imageName,
+                                            imageURL: figure.imageURL
+                                        )
+                                        .frame(width: 70, height: 70)
+                                        .clipShape(
+                                            RoundedRectangle(cornerRadius: 5)
+                                        )
                                     }
                                 }
                             }
@@ -93,11 +95,11 @@ struct RegionView: View {
         private func load() async {
             guard figures.isEmpty else { return }
             isLoading = true
-            WikidataAPI.fetchTopFigures(forContinentID: continent.id) { results in
+            WikidataAPI.fetchTopFigures(forContinentID: continent.id) {
+                results in
                 self.isLoading = false
                 self.figures = Array(results.prefix(4))
             }
         }
     }
 }
-

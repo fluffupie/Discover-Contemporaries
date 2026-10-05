@@ -6,17 +6,18 @@ final class CachedHistoricalFigure {
 
     @Attribute(.unique)
     var wikidataID: String
+
     var name: String
     var descriptionText: String?
     var gender: String?
 
     var birthDate: Date?
     var deathDate: Date?
-    
+
     var birthPlace: String?
     var imageURL: String?
     var imageName: String?
-    
+
     var occupations: [String]
     var movements: [String]
 
@@ -52,6 +53,8 @@ final class CachedHistoricalFigure {
     }
 }
 
+// MARK: - Historical Figure Conversion
+
 extension CachedHistoricalFigure {
 
     convenience init(from figure: HistoricalFigure) {
@@ -70,7 +73,7 @@ extension CachedHistoricalFigure {
         )
     }
 
-    func toHistoricalFigure() -> HistoricalFigure {
+    var historicalFigure: HistoricalFigure {
         HistoricalFigure(
             id: wikidataID,
             name: name,
@@ -85,6 +88,11 @@ extension CachedHistoricalFigure {
             imageName: imageName
         )
     }
+}
+
+// MARK: - Updating
+
+extension CachedHistoricalFigure {
 
     func update(from figure: HistoricalFigure) {
         name = figure.name
@@ -98,5 +106,9 @@ extension CachedHistoricalFigure {
         occupations = figure.occupations
         movements = figure.movements
         cachedAt = Date()
+    }
+
+    func markAsViewed() {
+        lastViewedAt = Date()
     }
 }

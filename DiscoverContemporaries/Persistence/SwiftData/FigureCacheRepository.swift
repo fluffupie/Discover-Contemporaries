@@ -11,15 +11,18 @@ final class FigureCacheRepository {
     }
 
     // MARK: - Fetch
+
     func fetchFigure(withID id: String) throws -> HistoricalFigure? {
         guard let cachedFigure = try fetchCachedFigure(withID: id) else {
             return nil
         }
-        cachedFigure.lastViewedAt = Date()
+
+        cachedFigure.markAsViewed()
         try context.save()
 
-        return cachedFigure.toHistoricalFigure()
+        return cachedFigure.historicalFigure
     }
+
     func fetchAllFigures() throws -> [HistoricalFigure] {
         let descriptor = FetchDescriptor<CachedHistoricalFigure>(
             sortBy: [
@@ -28,10 +31,12 @@ final class FigureCacheRepository {
         )
 
         return try context.fetch(descriptor)
-            .map { $0.toHistoricalFigure() }
+            .map(\.historicalFigure)
     }
 
-    func fetchRecentlyViewed(limit: Int = 10) throws -> [HistoricalFigure] {
+    func fetchRecentlyViewed(
+        limit: Int = 10
+    ) throws -> [HistoricalFigure] {
         var descriptor = FetchDescriptor<CachedHistoricalFigure>(
             sortBy: [
                 SortDescriptor(
@@ -44,7 +49,7 @@ final class FigureCacheRepository {
         descriptor.fetchLimit = limit
 
         return try context.fetch(descriptor)
-            .map { $0.toHistoricalFigure() }
+            .map(\.historicalFigure)
     }
 
     // MARK: - Save
@@ -81,35 +86,45 @@ final class FigureCacheRepository {
     // MARK: - Delete
 
     func deleteFigure(withID id: String) throws {
-        guard let figure = try fetchCachedFigure(withID: id) else {
+        guard let cachedFigure = try fetchCachedFigure(withID: id) else {
             return
         }
 
-        context.delete(figure)
+        context.delete(cachedFigure)
         try context.save()
     }
 
     func clearCache() throws {
         let descriptor = FetchDescriptor<CachedHistoricalFigure>()
+        let figures = try context.fetch(descriptor)
 
-        for figure in try context.fetch(descriptor) {
+        for figure in figures {
             context.delete(figure)
         }
 
         try context.save()
     }
 
-    // MARK: - Private helpers
+    // MARK: - Private Helpers
 
     private func fetchCachedFigure(
         withID id: String
     ) throws -> CachedHistoricalFigure? {
-        let descriptor = FetchDescriptor<CachedHistoricalFigure>(
+        var descriptor = FetchDescriptor<CachedHistoricalFigure>(
             predicate: #Predicate {
                 $0.wikidataID == id
             }
         )
 
+        descriptor.fetchLimit = 1
+
         return try context.fetch(descriptor).first
+    }
+    
+    func hasAnyFigures() throws -> Bool {
+        var descriptor = FetchDescriptor<CachedHistoricalFigure>()
+        descriptor.fetchLimit = 1
+
+        return try !context.fetch(descriptor).isEmpty
     }
 }

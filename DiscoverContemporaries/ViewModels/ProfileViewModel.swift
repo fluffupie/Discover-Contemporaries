@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import SwiftData
 
 @MainActor
 final class ProfileViewModel: ObservableObject {
@@ -8,12 +9,32 @@ final class ProfileViewModel: ObservableObject {
 
     @Published private(set) var cachedImageName: String?
     @Published private(set) var cachedImageURL: URL?
-    @Published private(set) var cachedCountry: String?
+    @Published private(set) var cachedBirthPlace: String?
     @Published private(set) var cachedBirthDate: Date?
     @Published private(set) var cachedDeathDate: Date?
+    
+    @Published private(set) var isBookmarked = false
+    @Published private(set) var bookmarkMessage: String?
 
     init(figure: HistoricalFigure) {
         self.figure = figure
+    }
+    
+    func load(context: ModelContext) {
+        let repository = FigureCacheRepository(context: context)
+        load(repository: repository)
+    }
+    
+    var summaryText: String {
+        figure.descriptionText ?? "No description available yet."
+    }
+
+    var roleLabel: String {
+        figure.primaryOccupation
+    }
+
+    var movementText: String {
+        figure.movementsText
     }
 
     // MARK: - Resolved Values
@@ -27,7 +48,7 @@ final class ProfileViewModel: ObservableObject {
     }
 
     private var resolvedBirthPlace: String? {
-        cachedCountry ?? figure.birthPlace
+        cachedBirthPlace ?? figure.birthPlace
     }
 
     private var resolvedImageURL: URL? {
@@ -81,7 +102,7 @@ final class ProfileViewModel: ObservableObject {
 
         cachedImageName = cached.imageName
         cachedImageURL = cached.imageURL
-        cachedCountry = cached.birthPlace
+        cachedBirthPlace = cached.birthPlace
         cachedBirthDate = cached.birthDate
         cachedDeathDate = cached.deathDate
     }
@@ -143,7 +164,7 @@ final class ProfileViewModel: ObservableObject {
                 return
             }
 
-            self.cachedCountry = country
+            self.cachedBirthPlace = country
             self.saveToCache(repository)
         }
     }
@@ -188,4 +209,32 @@ final class ProfileViewModel: ObservableObject {
             )
         }
     }
+    
+    func loadBookmarkState() async {
+            do {
+                isBookmarked = try await BookmarkService.shared.isSaved(figure.id)
+            } catch {
+                isBookmarked = false
+            }
+        }
+
+        func toggleBookmark() async {
+            do {
+                if isBookmarked {
+                    try await BookmarkService.shared.remove(figure.id)
+                    isBookmarked = false
+                    bookmarkMessage = "Removed from collection"
+                } else {
+                    try await BookmarkService.shared.save(figure)
+                    isBookmarked = true
+                    bookmarkMessage = "Figure saved!"
+                }
+            } catch {
+                bookmarkMessage = "Something went wrong"
+            }
+        }
+
+        func clearBookmarkMessage() {
+            bookmarkMessage = nil
+        }
 }

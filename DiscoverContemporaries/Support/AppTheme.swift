@@ -23,30 +23,3 @@ extension Color {
     static let compareGold = Color(red: 1.00, green: 0.83, blue: 0.00)
     static let comparePurple = Color(red: 0.55, green: 0.24, blue: 1.00)
 }
-
-extension Color {
-    static let firstCompareGradient = AngularGradient(
-        stops: [
-            Gradient.Stop(color: Color(red: 0.62, green: 0.11, blue: 0.14), location: 0.35),
-            Gradient.Stop(color: Color(red: 1, green: 0.67, blue: 0.54), location: 0.60),
-            Gradient.Stop(color: Color(red: 0.92, green: 0.48, blue: 0.22), location: 0.72)
-        ],
-        center: UnitPoint(x: 0.14, y: 0.78),
-        angle: Angle(degrees: -88.94)
-    )
-}
-
-extension View {
-    func h1NavigationTitle(_ title: String) -> some View {
-        navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text(title)
-                        .font(.title)
-                        .tracking(1.2)
-                        .foregroundStyle(Color.primaryText)
-                }
-            }
-    }
-}
-

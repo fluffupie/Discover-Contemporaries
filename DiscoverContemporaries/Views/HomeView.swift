@@ -17,53 +17,6 @@ struct HomeView: View {
         )
     }
 
-    // MARK: - State
-
-    private var isSearching: Bool {
-        !model.searchText
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .isEmpty
-    }
-
-    // MARK: - Default Figures
-
-    private let defaultFigureIDs = [
-        "Q7259",  // Ada Lovelace
-        "Q762",   // Leonardo da Vinci
-        "Q2831",  // Michael Jackson
-        "Q9682"   // Elizabeth II
-    ]
-
-    private var defaultFigures: [HistoricalFigure] {
-        let figuresByID = Dictionary(
-            uniqueKeysWithValues: cachedFigures.map {
-                ($0.wikidataID, $0)
-            }
-        )
-
-        return defaultFigureIDs.compactMap {
-            figuresByID[$0]?.toHistoricalFigure()
-        }
-    }
-
-    // MARK: - Recently Viewed
-
-    private var recentlyViewedFigures: [HistoricalFigure] {
-        cachedFigures
-            .filter {
-                !defaultFigureIDs.contains($0.wikidataID)
-            }
-            .sorted {
-                $0.lastViewedAt > $1.lastViewedAt
-            }
-            .prefix(5)
-            .map {
-                $0.toHistoricalFigure()
-            }
-    }
-
-    // MARK: - Body
-
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(
@@ -79,34 +32,40 @@ struct HomeView: View {
                     model.searchFigures()
                 }
 
-                if isSearching {
-                    SearchResultsSection(
-                        isLoading: model.isLoading,
-                        errorMessage: model.errorMessage,
-                        results: model.searchResults
-                    )
-                } else {
-                    ExploreFiguresSection(
-                        figures: defaultFigures
-                    )
+                if model.hasSearchQuery {
+                                    SearchResultsSection(
+                                        isLoading: model.isLoading,
+                                        errorMessage: model.errorMessage,
+                                        results: model.searchResults
+                                    )
+                                } else {
+                                    ExploreFiguresSection(
+                                        figures: model.defaultFigures(
+                                            from: cachedFigures
+                                        )
+                                    )
 
-                    if !recentlyViewedFigures.isEmpty {
-                        RecentlyViewedSection(
-                            figures: recentlyViewedFigures
-                        )
-                    }
-                }
-            }
-            .padding(.horizontal, 22)
-            .padding(.top, 14)
-            .padding(.bottom, 24)
-        }
-        .background(Color.appBackground)
-        .navigationTitle("Home")
-        .navigationBarTitleDisplayMode(.inline)
-        .task {
-            setupHome()
-        }
+                                    let recentFigures = model.recentlyViewedFigures(
+                                        from: cachedFigures
+                                    )
+
+                                    if !recentFigures.isEmpty {
+                                        RecentlyViewedSection(
+                                            figures: recentFigures
+                                        )
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 22)
+                            .padding(.top, 14)
+                            .padding(.bottom, 24)
+                        }
+                        .background(Color.appBackground)
+                        .navigationTitle("Home")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .task {
+                            setupHome()
+                        }
     }
 
     // MARK: - Setup

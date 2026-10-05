@@ -3,7 +3,7 @@ import SwiftUI
 struct PortraitImage: View {
     let imageName: String?
     let imageURL: URL?
-    
+
     init(imageName: String? = nil, imageURL: URL? = nil) {
         self.imageName = imageName
         self.imageURL = imageURL
@@ -11,70 +11,71 @@ struct PortraitImage: View {
 
     var body: some View {
         Group {
-            if let name = imageName, !name.isEmpty, UIImage(named: name) != nil {
-                Image(name)
-                    .resizable()
-                    .scaledToFill()
-            } else if let url = imageURL {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .empty:
-                        placeholder(spinning: true)
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    case .failure:
-                        placeholder(spinning: false)
-                    @unknown default:
-                        placeholder(spinning: false)
-                    }
-                }
+            if let imageName, hasLocalImage {
+                localImage(named: imageName)
+            } else if let imageURL {
+                remoteImage(from: imageURL)
             } else {
-                placeholder(spinning: false)
+                placeholder
             }
         }
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityAddTraits(.isImage)
         .clipped()
         .background(Color.black.opacity(0.05))
+        .accessibilityAddTraits(.isImage)
     }
 
-    private func placeholder(spinning: Bool) -> some View {
-        ZStack {
-            Color.gray.opacity(0.12)
-            Image(systemName: "person.crop.square")
-                .font(.system(size: 36, weight: .regular))
-                .foregroundStyle(.secondary)
-            if spinning {
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .tint(.secondary)
+    private var hasLocalImage: Bool {
+        guard let imageName, !imageName.isEmpty else {
+            return false
+        }
+
+        return UIImage(named: imageName) != nil
+    }
+
+    private func localImage(named name: String) -> some View {
+        Image(name)
+            .resizable()
+            .scaledToFill()
+    }
+
+    private func remoteImage(from url: URL) -> some View {
+        AsyncImage(url: url) { phase in
+            switch phase {
+            case .empty:
+                loadingPlaceholder
+
+            case .success(let image):
+                image
+                    .resizable()
+                    .scaledToFill()
+
+            case .failure:
+                placeholder
+
+            @unknown default:
+                placeholder
             }
         }
     }
 
-    private var accessibilityLabel: String {
-        if let name = imageName, !name.isEmpty {
-            return "Portrait image for \(name)"
+    private var loadingPlaceholder: some View {
+        ZStack {
+            Color.gray.opacity(0.12)
+
+            ProgressView()
+                .progressViewStyle(.circular)
+                .tint(.secondary)
         }
-        return "Portrait image"
     }
-}
 
-#Preview {
-    VStack(spacing: 20) {
-        PortraitImage(imageName: "da-vinci", imageURL: nil)
-            .frame(width: 120, height: 120)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+    private var placeholder: some View {
+        ZStack {
+            Color.gray.opacity(0.12)
 
-        PortraitImage(imageName: nil, imageURL: URL(string: "https://example.com/portrait.jpg"))
-            .frame(width: 120, height: 120)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-
-        PortraitImage(imageName: nil, imageURL: nil)
-            .frame(width: 120, height: 120)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            Image(systemName: "person.crop.square")
+                .font(.system(size: 36))
+                .foregroundStyle(.secondary)
+        }
     }
-    .padding()
+
 }
