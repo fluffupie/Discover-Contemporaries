@@ -2,6 +2,56 @@ import Foundation
 
 struct WikidataAPI {
 
+    private static func makeHistoricalFigure(
+        from binding: SPARQLBinding
+    ) -> HistoricalFigure? {
+        guard let id = wikidataID(from: binding.person.value) else {
+            return nil
+        }
+
+        return HistoricalFigure(
+            id: id,
+            name: binding.personLabel.value,
+            descriptionText: nil,
+            gender: nil,
+            birthPlace: nil,
+            birthDate: binding.birth.flatMap {
+                parseSPARQLDate($0.value)
+            },
+            deathDate: binding.death.flatMap {
+                parseSPARQLDate($0.value)
+            },
+            occupations: [],
+            movements: [],
+            imageURL: nil,
+            imageName: nil
+        )
+    }
+
+    private static func executeSPARQL(
+        _ query: String,
+        completion: @escaping ([SPARQLBinding]) -> Void
+    ) {
+        guard var components = URLComponents(string: sparqlURL) else {
+            completion([])
+            return
+        }
+
+        components.queryItems = [
+            URLQueryItem(name: "query", value: query),
+            URLQueryItem(name: "format", value: "json"),
+        ]
+
+        guard let url = components.url else {
+            completion([])
+            return
+        }
+
+        fetch(url: url, as: SPARQLResponse.self) { response in
+            completion(response?.results.bindings ?? [])
+        }
+    }
+
     private static let baseURL =
         "https://www.wikidata.org/w/api.php"
 
@@ -25,16 +75,6 @@ struct WikidataAPI {
         let calendar = Calendar(
             identifier: .gregorian
         )
-
-        /*
-         Keep the Wikidata query deliberately narrow.
-
-         Wikidata only supplies candidates born within
-         10 years before/after the target figure.
-
-         Swift then performs the real lifespan-overlap
-         calculation locally.
-         */
         guard
             let searchStartDate = calendar.date(
                 byAdding: .year,
@@ -62,43 +102,49 @@ struct WikidataAPI {
             )
 
         let query = """
-        SELECT DISTINCT
-            ?person
-            ?personLabel
-            ?birth
-            ?death
-            ?sitelinks
-        WHERE {
-            ?person wdt:P31 wd:Q5;
-                    wdt:P569 ?birth;
-                    wikibase:sitelinks ?sitelinks.
+            SELECT DISTINCT
+                ?person
+                ?personLabel
+                ?birth
+                ?death
+                ?image
+                ?sitelinks
+            WHERE {
+                ?person wdt:P31 wd:Q5;
+                        wdt:P569 ?birth;
+                        wikibase:sitelinks ?sitelinks.
 
-            hint:Prior hint:rangeSafe true.
+                hint:Prior hint:rangeSafe true.
 
-            FILTER(
-                "\(searchStart)T00:00:00Z"^^xsd:dateTime <= ?birth &&
-                ?birth <= "\(searchEnd)T23:59:59Z"^^xsd:dateTime
-            )
+                FILTER(
+                    "\(searchStart)T00:00:00Z"^^xsd:dateTime <= ?birth &&
+                    ?birth <= "\(searchEnd)T23:59:59Z"^^xsd:dateTime
+                )
 
-            FILTER(?person != wd:\(figure.id))
+                FILTER(?person != wd:\(figure.id))
 
-            FILTER(?sitelinks >= 50)
+                FILTER(?sitelinks >= 200)
 
+                OPTIONAL {
+                    ?person wdt:P570 ?death.
+                }
             OPTIONAL {
-                ?person wdt:P570 ?death.
-            }
+                    ?person wdt:P18 ?image.
+                }
 
-            SERVICE wikibase:label {
-                bd:serviceParam wikibase:language "en".
+                SERVICE wikibase:label {
+                    bd:serviceParam wikibase:language "en".
+                }
             }
-        }
-        ORDER BY DESC(?sitelinks)
-        LIMIT 50
-        """
+            ORDER BY DESC(?sitelinks)
+            LIMIT 20
+            """
 
-        guard var components = URLComponents(
-            string: sparqlURL
-        ) else {
+        guard
+            var components = URLComponents(
+                string: sparqlURL
+            )
+        else {
             completion([])
             return
         }
@@ -111,7 +157,7 @@ struct WikidataAPI {
             URLQueryItem(
                 name: "format",
                 value: "json"
-            )
+            ),
         ]
 
         guard let url = components.url else {
@@ -141,7 +187,8 @@ struct WikidataAPI {
             }
 
             if let httpResponse =
-                response as? HTTPURLResponse {
+                response as? HTTPURLResponse
+            {
 
                 print(
                     "Contemporaries HTTP status: \(httpResponse.statusCode)"
@@ -179,7 +226,7 @@ struct WikidataAPI {
                             SPARQLResponse.self,
                             from: data
                         )
-
+                    
                     let contemporaries =
                         response.results.bindings
                             .compactMap { binding -> ContemporaryFigure? in
@@ -189,6 +236,17 @@ struct WikidataAPI {
                                     targetDeathDate: deathDate
                                 )
                             }
+
+                    let uniqueContemporaries =
+                        removeDuplicateContemporaries(
+                            from: contemporaries
+                        )
+
+                    completion(
+                        Array(
+                            uniqueContemporaries.prefix(20)
+                        )
+                    )
 
                     print(
                         "Found \(contemporaries.count) contemporaries for \(figure.name)"
@@ -220,44 +278,41 @@ struct WikidataAPI {
         }
         .resume()
     }
+    
+    private static func removeDuplicateContemporaries(
+        from figures: [ContemporaryFigure]
+    ) -> [ContemporaryFigure] {
+        var seenIDs = Set<String>()
+
+        return figures.filter { figure in
+            seenIDs.insert(figure.id).inserted
+        }
+    }
 
     private static func makeContemporary(
         from binding: SPARQLBinding,
         targetBirthDate: Date,
         targetDeathDate: Date
     ) -> ContemporaryFigure? {
-
         guard
             let id = wikidataID(
                 from: binding.person.value
             ),
-            let candidateBirth =
-                binding.birth.flatMap({
-                    parseSPARQLDate(
-                        $0.value
-                    )
-                })
+            let candidateBirth = binding.birth.flatMap({
+                parseSPARQLDate($0.value)
+            })
         else {
             return nil
         }
 
-        let candidateDeath =
-            binding.death.flatMap {
-                parseSPARQLDate(
-                    $0.value
-                )
-            }
+        let candidateDeath = binding.death.flatMap {
+            parseSPARQLDate($0.value)
+        }
 
-        /*
-         Living figures have no death date, so use
-         the present date for overlap calculation.
-         */
-        let candidateEnd =
-            candidateDeath ?? Date()
+        let candidateEnd = candidateDeath ?? Date()
 
         let overlaps =
-            candidateBirth <= targetDeathDate &&
-            candidateEnd >= targetBirthDate
+            candidateBirth <= targetDeathDate && candidateEnd >= targetBirthDate
 
         guard overlaps else {
             return nil
@@ -267,7 +322,10 @@ struct WikidataAPI {
             id: id,
             name: binding.personLabel.value,
             birthDate: candidateBirth,
-            deathDate: candidateDeath
+            deathDate: candidateDeath,
+            imageURL: binding.image.flatMap {
+                URL(string: $0.value)
+            }
         )
     }
 
@@ -303,112 +361,59 @@ struct WikidataAPI {
     }()
 
     // MARK: - Continent Top Figures
-
     static func fetchTopFigures(
         forContinentID id: String,
         completion: @escaping ([HistoricalFigure]) -> Void
     ) {
         let query = """
-        SELECT DISTINCT ?person ?personLabel ?birth ?death ?sitelinks WHERE {
-          VALUES ?continent { wd:\(id) }
+            SELECT DISTINCT
+                ?person
+                ?personLabel
+                ?birth
+                ?death
+                ?sitelinks
+            WHERE {
+                VALUES ?continent { wd:\(id) }
 
-          # Countries on the target continent
-          ?country wdt:P31 wd:Q6256 ;
-                   wdt:P30 ?continent .
+                ?person wdt:P31 wd:Q5 ;
+                        wikibase:sitelinks ?sitelinks .
 
-          # Humans with sufficient popularity (sitelinks)
-          ?person wdt:P31 wd:Q5 ;
-                  wikibase:sitelinks ?sitelinks .
+                FILTER(?sitelinks >= 150)
 
-          FILTER(?sitelinks >= 100)
+                OPTIONAL { ?person wdt:P569 ?birth. }
+                OPTIONAL { ?person wdt:P570 ?death. }
 
-          OPTIONAL { ?person wdt:P569 ?birth. }
-          OPTIONAL { ?person wdt:P570 ?death. }
-
-            ?person wdt:P19 ?place .
-            ?place wdt:P17 ?country .
-
-
-          hint:Prior hint:rangeSafe true.
-
-          SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-        }
-        LIMIT 10
-        """
-
-        guard var components = URLComponents(string: sparqlURL) else {
-            completion([])
-            return
-        }
-
-        components.queryItems = [
-            URLQueryItem(name: "query", value: query),
-            URLQueryItem(name: "format", value: "json")
-        ]
-
-        guard let url = components.url else {
-            completion([])
-            return
-        }
-
-        var request = request(for: url)
-        request.timeoutInterval = 60
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error {
-                print("Continent top figures request failed: \(error)")
-                Task { @MainActor in completion([]) }
-                return
-            }
-
-            if let httpResponse = response as? HTTPURLResponse {
-                guard (200...299).contains(httpResponse.statusCode) else {
-                    print("Continent top figures HTTP error: \(httpResponse.statusCode)")
-                    Task { @MainActor in completion([]) }
-                    return
+                {
+                    # Primary filter:
+                    # Use country of citizenship (P27)
+                    ?person wdt:P27 ?country .
+                    ?country wdt:P30 ?continent .
                 }
-            }
-
-            guard let data else {
-                Task { @MainActor in completion([]) }
-                return
-            }
-
-            Task { @MainActor in
-                do {
-                    let response = try JSONDecoder().decode(SPARQLResponse.self, from: data)
-
-                    let figures: [HistoricalFigure] = response.results.bindings.compactMap { binding in
-                        guard let id = wikidataID(from: binding.person.value) else { return nil }
-
-                        let birth = binding.birth.flatMap { parseSPARQLDate($0.value) }
-                        let death = binding.death.flatMap { parseSPARQLDate($0.value) }
-
-                        return HistoricalFigure(
-                            id: id,
-                            name: binding.personLabel.value,
-                            descriptionText: nil,
-                            gender: nil,
-                            birthPlace: nil,
-                            birthDate: birth,
-                            deathDate: death,
-                            occupations: [],
-                            movements: [],
-                            imageURL: nil,
-                            imageName: nil
-                        )
+                UNION
+                {
+                    # Fallback:
+                    # Only use birthplace when P27 is completely missing
+                    FILTER NOT EXISTS {
+                        ?person wdt:P27 ?anyCountry .
                     }
 
-                    completion(figures)
-                } catch {
-                    print("Failed to decode continent top figures: \(error)")
-                    if let responseText = String(data: data, encoding: .utf8) {
-                        print("SPARQL response: \(responseText.prefix(500))")
-                    }
-                    completion([])
+                    ?person wdt:P19 ?birthPlace .
+                    ?birthPlace wdt:P17 ?country .
+                    ?country wdt:P30 ?continent .
+                }
+
+                SERVICE wikibase:label {
+                    bd:serviceParam wikibase:language "en".
                 }
             }
-        }.resume()
+            ORDER BY DESC(?sitelinks)
+            LIMIT 10
+            """
+
+        executeSPARQL(query) { bindings in
+            let figures = bindings.compactMap(makeHistoricalFigure)
+            completion(figures)
+        }
     }
 
     // MARK: - Occupation Top Figures
@@ -418,100 +423,31 @@ struct WikidataAPI {
         completion: @escaping ([HistoricalFigure]) -> Void
     ) {
         let query = """
-        SELECT DISTINCT ?person ?personLabel ?birth ?death ?sitelinks WHERE {
-          ?person wdt:P31 wd:Q5 ;
-                  wikibase:sitelinks ?sitelinks ;
-                  wdt:P106 ?occ .
+            SELECT DISTINCT ?person ?personLabel ?birth ?death ?sitelinks WHERE {
+              ?person wdt:P31 wd:Q5 ;
+                      wikibase:sitelinks ?sitelinks ;
+                      wdt:P106 ?occ .
 
-          # Include subclasses of the requested occupation
-          ?occ wdt:P279* wd:\(id) .
+              # Include subclasses of the requested occupation
+              ?occ wdt:P279* wd:\(id) .
 
-          FILTER(?sitelinks >= 100)
+              FILTER(?sitelinks >= 200)
 
-          OPTIONAL { ?person wdt:P569 ?birth. }
-          OPTIONAL { ?person wdt:P570 ?death. }
+              OPTIONAL { ?person wdt:P569 ?birth. }
+              OPTIONAL { ?person wdt:P570 ?death. }
 
-          hint:Prior hint:rangeSafe true.
+              hint:Prior hint:rangeSafe true.
 
-          SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+              SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+            }
+            ORDER BY DESC(?sitelinks)
+            LIMIT 20
+            """
+
+        executeSPARQL(query) { bindings in
+            let figures = bindings.compactMap(makeHistoricalFigure)
+            completion(figures)
         }
-        ORDER BY DESC(?sitelinks)
-        LIMIT 20
-        """
-
-        guard var components = URLComponents(string: sparqlURL) else {
-            completion([])
-            return
-        }
-
-        components.queryItems = [
-            URLQueryItem(name: "query", value: query),
-            URLQueryItem(name: "format", value: "json")
-        ]
-
-        guard let url = components.url else {
-            completion([])
-            return
-        }
-
-        var request = request(for: url)
-        request.timeoutInterval = 60
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error {
-                print("Occupation top figures request failed: \(error)")
-                Task { @MainActor in completion([]) }
-                return
-            }
-
-            if let httpResponse = response as? HTTPURLResponse {
-                guard (200...299).contains(httpResponse.statusCode) else {
-                    print("Occupation top figures HTTP error: \(httpResponse.statusCode)")
-                    Task { @MainActor in completion([]) }
-                    return
-                }
-            }
-
-            guard let data else {
-                Task { @MainActor in completion([]) }
-                return
-            }
-
-            Task { @MainActor in
-                do {
-                    let response = try JSONDecoder().decode(SPARQLResponse.self, from: data)
-
-                    let figures: [HistoricalFigure] = response.results.bindings.compactMap { binding in
-                        guard let id = wikidataID(from: binding.person.value) else { return nil }
-
-                        let birth = binding.birth.flatMap { parseSPARQLDate($0.value) }
-                        let death = binding.death.flatMap { parseSPARQLDate($0.value) }
-
-                        return HistoricalFigure(
-                            id: id,
-                            name: binding.personLabel.value,
-                            descriptionText: nil,
-                            gender: nil,
-                            birthPlace: nil,
-                            birthDate: birth,
-                            deathDate: death,
-                            occupations: [],
-                            movements: [],
-                            imageURL: nil,
-                            imageName: nil
-                        )
-                    }
-
-                    completion(figures)
-                } catch {
-                    print("Failed to decode occupation top figures: \(error)")
-                    if let responseText = String(data: data, encoding: .utf8) {
-                        print("SPARQL response: \(responseText.prefix(500))")
-                    }
-                    completion([])
-                }
-            }
-        }.resume()
     }
 
     // MARK: - Figure Search
@@ -585,9 +521,9 @@ struct WikidataAPI {
 
                     portraitURL:
                         entity.portraitFileName
-                            .flatMap(
-                                commonsImageURL
-                            ),
+                        .flatMap(
+                            commonsImageURL
+                        ),
 
                     countryID:
                         entity.countryIDs.first
@@ -729,7 +665,8 @@ struct WikidataAPI {
                 }
 
                 if let httpResponse =
-                    response as? HTTPURLResponse {
+                    response as? HTTPURLResponse
+                {
 
                     guard
                         (200...299)
@@ -820,7 +757,7 @@ struct WikidataAPI {
             URLQueryItem(
                 name: "limit",
                 value: "20"
-            )
+            ),
         ]
 
         return components?.url
@@ -858,7 +795,7 @@ struct WikidataAPI {
             URLQueryItem(
                 name: "format",
                 value: "json"
-            )
+            ),
         ]
 
         if let languages {
@@ -925,18 +862,18 @@ struct WikidataAPI {
     ) -> Date? {
         let trimmed =
             time.hasPrefix("+")
-                ? String(
-                    time.dropFirst()
-                )
-                : time
+            ? String(
+                time.dropFirst()
+            )
+            : time
 
         guard
             let datePart =
                 trimmed
-                    .split(
-                        separator: "T"
-                    )
-                    .first
+                .split(
+                    separator: "T"
+                )
+                .first
         else {
             return nil
         }
@@ -981,18 +918,14 @@ struct WikidataFigureDetails {
 // MARK: - Wikidata Entity Response
 
 private struct WikidataEntitiesResponse: Decodable {
-    let entities: [
-        String: WikidataEntity
-    ]
+    let entities: [String: WikidataEntity]
 }
 
 private struct WikidataEntity: Decodable {
 
-    let claims:
-        [String: [WikidataClaim]]?
+    let claims: [String: [WikidataClaim]]?
 
-    let labels:
-        [String: WikidataLabel]?
+    let labels: [String: WikidataLabel]?
 
     var isHuman: Bool {
         claims?["P31"]?
@@ -1003,7 +936,7 @@ private struct WikidataEntity: Decodable {
                     .value?
                     .id == "Q5"
             }
-        ?? false
+            ?? false
     }
 
     var countryIDs: [String] {
@@ -1015,7 +948,7 @@ private struct WikidataEntity: Decodable {
                     .value?
                     .id
             }
-        ?? []
+            ?? []
     }
 
     var englishLabel: String? {
@@ -1037,19 +970,20 @@ private struct WikidataEntity: Decodable {
         guard
             let time =
                 claims?["P569"]?
-                    .compactMap({
-                        $0
-                            .mainsnak
-                            .datavalue?
-                            .value?
-                            .time
-                    })
-                    .first
+                .compactMap({
+                    $0
+                        .mainsnak
+                        .datavalue?
+                        .value?
+                        .time
+                })
+                .first
         else {
             return nil
         }
 
-        return WikidataAPI
+        return
+            WikidataAPI
             .parseWikidataTime(
                 time
             )
@@ -1059,19 +993,20 @@ private struct WikidataEntity: Decodable {
         guard
             let time =
                 claims?["P570"]?
-                    .compactMap({
-                        $0
-                            .mainsnak
-                            .datavalue?
-                            .value?
-                            .time
-                    })
-                    .first
+                .compactMap({
+                    $0
+                        .mainsnak
+                        .datavalue?
+                        .value?
+                        .time
+                })
+                .first
         else {
             return nil
         }
 
-        return WikidataAPI
+        return
+            WikidataAPI
             .parseWikidataTime(
                 time
             )
@@ -1097,7 +1032,8 @@ private struct WikidataDataValue: Decodable {
 
     private enum CodingKeys:
         String,
-        CodingKey {
+        CodingKey
+    {
 
         case value
     }
@@ -1145,9 +1081,9 @@ private struct SPARQLBinding: Decodable {
     let personLabel: SPARQLValue
     let birth: SPARQLValue?
     let death: SPARQLValue?
+    let image: SPARQLValue?
 }
 
 private struct SPARQLValue: Decodable {
     let value: String
 }
-

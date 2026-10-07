@@ -29,23 +29,31 @@ struct ContinentTopFiguresView: View {
         }
     }
 
-    private var figuresList: some View {
-        List(model.figures) { figure in
-            NavigationLink {
-                ProfileView(figure: figure)
-            } label: {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(figure.name)
-                        .font(.headline)
+    // MARK: - Figures List
 
-                    Text(figure.lifespan)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+    private var figuresList: some View {
+        List {
+            ForEach(model.figures) { figure in
+                NavigationLink {
+                    ProfileView(
+                        figure: figure
+                    )
+                } label: {
+                    FigureListRow(
+                        name: figure.name,
+                        subtitle: figure.descriptionText,
+                        imageName: figure.imageName,
+                        imageURL: figure.imageURL
+                    )
                 }
             }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color.appBackground)
     }
+
+    // MARK: - Error State
 
     private func errorView(message: String) -> some View {
         VStack(spacing: 12) {
