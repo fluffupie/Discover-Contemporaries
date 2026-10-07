@@ -8,8 +8,19 @@ struct ComparisonView: View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(spacing: 15) {
-                    CompareCard(figure: firstFigure)
-                    CompareCard(figure: secondFigure)
+                    NavigationLink {
+                        ProfileView(figure: firstFigure)
+                    } label: {
+                        CompareCard(figure: firstFigure)
+                    }
+                    .buttonStyle(.plain)
+
+                    NavigationLink {
+                        ProfileView(figure: secondFigure)
+                    } label: {
+                        CompareCard(figure: secondFigure)
+                    }
+                    .buttonStyle(.plain)
                 }
 
                 // overlapping visuals here
@@ -24,7 +35,7 @@ struct ComparisonView: View {
                         "Unable to compare",
                         systemImage: "calendar.badge.exclamationmark",
                         description: Text(
-                            "Both figures need birth and death dates."
+                            "Both figures need a known birth date."
                         )
                     )
                 }
@@ -58,13 +69,15 @@ struct ComparisonView: View {
                 figureTimeline(
                     figure: firstFigure,
                     birthYear: timeline.firstBirthYear,
-                    deathYear: timeline.firstDeathYear
+                    deathYear: timeline.firstDeathYear,
+                    isLiving: timeline.firstIsLiving
                 )
 
                 figureTimeline(
                     figure: secondFigure,
                     birthYear: timeline.secondBirthYear,
-                    deathYear: timeline.secondDeathYear
+                    deathYear: timeline.secondDeathYear,
+                    isLiving: timeline.secondIsLiving
                 )
 
                 if timeline.hasOverlap {
@@ -138,7 +151,8 @@ struct ComparisonView: View {
         private func figureTimeline(
             figure: HistoricalFigure,
             birthYear: Int,
-            deathYear: Int
+            deathYear: Int,
+            isLiving: Bool
         ) -> some View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(figure.name)
@@ -251,9 +265,11 @@ struct ComparisonView: View {
     private struct LifespanTimelineData {
         let firstBirthYear: Int
         let firstDeathYear: Int
+        let firstIsLiving: Bool
 
         let secondBirthYear: Int
         let secondDeathYear: Int
+        let secondIsLiving: Bool
 
         let startYear: Int
         let endYear: Int
@@ -267,12 +283,16 @@ struct ComparisonView: View {
         ) {
             guard
                 let firstBirth = firstFigure.birthDate,
-                let firstDeath = firstFigure.deathDate,
-                let secondBirth = secondFigure.birthDate,
-                let secondDeath = secondFigure.deathDate
+                let secondBirth = secondFigure.birthDate
             else {
                 return nil
             }
+
+            firstIsLiving = firstFigure.deathDate == nil
+            secondIsLiving = secondFigure.deathDate == nil
+
+            let firstDeath = firstFigure.deathDate ?? Date()
+            let secondDeath = secondFigure.deathDate ?? Date()
 
             let calendar = Calendar(identifier: .gregorian)
 
