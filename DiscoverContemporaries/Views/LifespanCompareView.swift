@@ -39,37 +39,3 @@ struct LifespanCompareView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 }
-
-#Preview {
-    NavigationStack {
-        LifespanCompareView(
-            firstFigure: HistoricalFigure(
-                id: "Q1",
-                name: "Ada Lovelace",
-                descriptionText: "Mathematician",
-                gender: nil,
-                birthPlace: nil,
-                birthDate: Calendar.current.date(from: DateComponents(year: 1815, month: 12, day: 10)),
-                deathDate: Calendar.current.date(from: DateComponents(year: 1852, month: 11, day: 27)),
-                occupations: [],
-                movements: [],
-                imageURL: nil,
-                imageName: nil
-            ),
-            secondFigure: HistoricalFigure(
-                id: "Q2",
-                name: "Alan Turing",
-                descriptionText: "Computer scientist",
-                gender: nil,
-                birthPlace: nil,
-                birthDate: Calendar.current.date(from: DateComponents(year: 1912, month: 6, day: 23)),
-                deathDate: Calendar.current.date(from: DateComponents(year: 1954, month: 6, day: 7)),
-                occupations: [],
-                movements: [],
-                imageURL: nil,
-                imageName: nil
-            )
-        )
-    }
-}
-
