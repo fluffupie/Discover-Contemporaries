@@ -12,8 +12,12 @@ final class FigureCacheRepository {
 
     // MARK: - Fetch
 
-    func fetchFigure(withID id: String) throws -> HistoricalFigure? {
-        guard let cachedFigure = try fetchCachedFigure(withID: id) else {
+    func fetchFigure(
+        withID id: String
+    ) throws -> HistoricalFigure? {
+        guard let cachedFigure = try fetchCachedFigure(
+            withID: id
+        ) else {
             return nil
         }
 
@@ -21,6 +25,14 @@ final class FigureCacheRepository {
         try context.save()
 
         return cachedFigure.historicalFigure
+    }
+
+    func fetchFigureWithoutMarkingViewed(
+        withID id: String
+    ) throws -> HistoricalFigure? {
+        try fetchCachedFigure(
+            withID: id
+        )?.historicalFigure
     }
 
     func fetchAllFigures() throws -> [HistoricalFigure] {
@@ -38,6 +50,9 @@ final class FigureCacheRepository {
         limit: Int = 10
     ) throws -> [HistoricalFigure] {
         var descriptor = FetchDescriptor<CachedHistoricalFigure>(
+            predicate: #Predicate {
+                $0.lastViewedAt != nil
+            },
             sortBy: [
                 SortDescriptor(
                     \.lastViewedAt,
@@ -55,7 +70,9 @@ final class FigureCacheRepository {
     // MARK: - Save
 
     func save(_ figure: HistoricalFigure) throws {
-        if let existingFigure = try fetchCachedFigure(withID: figure.id) {
+        if let existingFigure = try fetchCachedFigure(
+            withID: figure.id
+        ) {
             existingFigure.update(from: figure)
         } else {
             context.insert(
@@ -68,25 +85,42 @@ final class FigureCacheRepository {
 
     // MARK: - Cache State
 
-    func containsFigure(withID id: String) throws -> Bool {
+    func containsFigure(
+        withID id: String
+    ) throws -> Bool {
         try fetchCachedFigure(withID: id) != nil
+    }
+
+    func hasAnyFigures() throws -> Bool {
+        var descriptor = FetchDescriptor<CachedHistoricalFigure>()
+        descriptor.fetchLimit = 1
+
+        return try !context.fetch(descriptor).isEmpty
     }
 
     func isCacheFresh(
         for id: String,
         maxAge: TimeInterval = 60 * 60 * 24 * 7
     ) throws -> Bool {
-        guard let cachedFigure = try fetchCachedFigure(withID: id) else {
+        guard let cachedFigure = try fetchCachedFigure(
+            withID: id
+        ) else {
             return false
         }
 
-        return Date().timeIntervalSince(cachedFigure.cachedAt) < maxAge
+        return Date().timeIntervalSince(
+            cachedFigure.cachedAt
+        ) < maxAge
     }
 
     // MARK: - Delete
 
-    func deleteFigure(withID id: String) throws {
-        guard let cachedFigure = try fetchCachedFigure(withID: id) else {
+    func deleteFigure(
+        withID id: String
+    ) throws {
+        guard let cachedFigure = try fetchCachedFigure(
+            withID: id
+        ) else {
             return
         }
 
@@ -119,12 +153,5 @@ final class FigureCacheRepository {
         descriptor.fetchLimit = 1
 
         return try context.fetch(descriptor).first
-    }
-    
-    func hasAnyFigures() throws -> Bool {
-        var descriptor = FetchDescriptor<CachedHistoricalFigure>()
-        descriptor.fetchLimit = 1
-
-        return try !context.fetch(descriptor).isEmpty
     }
 }

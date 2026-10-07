@@ -3,10 +3,11 @@ import SwiftUI
 
 struct ProfileView: View {
 
-    @Environment(\.modelContext) private var modelContext
-    @StateObject private var model: ProfileViewModel
-    @State private var isBookmarked: Bool = false
-    @State private var toastMessage: String? = nil
+    @Environment(\.modelContext)
+    private var modelContext
+
+    @StateObject
+    private var model: ProfileViewModel
 
     init(figure: HistoricalFigure) {
         _model = StateObject(
@@ -72,7 +73,7 @@ struct ProfileView: View {
                 ) {
                     NavigationLink {
                         ContemporariesView(
-                            figure: model.figure
+                            figure: model.resolvedFigure
                         )
                     } label: {
                         Label(
@@ -86,13 +87,9 @@ struct ProfileView: View {
                             )
                         )
                         .foregroundStyle(.white)
-                        .frame(
-                            maxWidth: .infinity
-                        )
+                        .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(
-                            Color.tealButton
-                        )
+                        .background(Color.tealButton)
                         .clipShape(
                             RoundedRectangle(
                                 cornerRadius: 6
@@ -109,23 +106,28 @@ struct ProfileView: View {
         .background(Color.appBackground)
         .overlay(alignment: .top) {
             if let message = model.bookmarkMessage {
-                    ToastBanner(message: message)
-                        .transition(
-                            .move(edge: .top)
-                                .combined(with: .opacity)
-                        )
-                        .zIndex(1)
-                }
+                ToastBanner(message: message)
+                    .transition(
+                        .move(edge: .top)
+                            .combined(with: .opacity)
+                    )
+                    .zIndex(1)
+            }
         }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(
+                placement: .topBarTrailing
+            ) {
                 Button {
                     Task {
                         await model.toggleBookmark()
 
-                        try? await Task.sleep(for: .seconds(1.8))
+                        try? await Task.sleep(
+                            for: .seconds(1.8)
+                        )
+
                         model.clearBookmarkMessage()
                     }
                 } label: {
@@ -139,7 +141,12 @@ struct ProfileView: View {
                             ? Color.red
                             : Color.primary
                     )
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(
+                        .system(
+                            size: 16,
+                            weight: .semibold
+                        )
+                    )
                     .accessibilityLabel(
                         model.isBookmarked
                             ? "Remove from bookmarks"
@@ -148,20 +155,32 @@ struct ProfileView: View {
                 }
             }
 
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(
+                placement: .topBarTrailing
+            ) {
                 NavigationLink {
                     CompareSearchView(
-                        firstFigure: model.figure
+                        firstFigure: model.resolvedFigure
                     )
                 } label: {
-                    Image(systemName: "arrow.left.arrow.right")
-                        .font(.system(size: 16, weight: .semibold))
-                        .accessibilityLabel("Compare")
+                    Image(
+                        systemName: "arrow.left.arrow.right"
+                    )
+                    .font(
+                        .system(
+                            size: 16,
+                            weight: .semibold
+                        )
+                    )
+                    .accessibilityLabel("Compare")
                 }
             }
         }
         .task {
-            model.load(context: modelContext)
+            model.load(
+                context: modelContext
+            )
+
             await model.loadBookmarkState()
         }
     }
@@ -170,7 +189,6 @@ struct ProfileView: View {
 // MARK: - Hero
 
 private struct ProfileHero: View {
-
     let figure: HistoricalFigure
     let imageName: String?
     let imageURL: URL?
@@ -183,28 +201,9 @@ private struct ProfileHero: View {
                 imageName: imageName,
                 imageURL: imageURL
             )
-            .frame(
-                width: 154,
-                height: 154
-            )
+            .frame(width: 154, height: 154)
             .clipShape(
-                RoundedRectangle(
-                    cornerRadius: 10
-                )
-            )
-            .overlay {
-                RoundedRectangle(
-                    cornerRadius: 10
-                )
-                .stroke(
-                    Color.white.opacity(0.85),
-                    lineWidth: 3
-                )
-            }
-            .shadow(
-                color: .black.opacity(0.16),
-                radius: 12,
-                y: 7
+                RoundedRectangle(cornerRadius: 10)
             )
 
             VStack(spacing: 8) {
@@ -216,12 +215,8 @@ private struct ProfileHero: View {
                             design: .serif
                         )
                     )
-                    .foregroundStyle(
-                        Color.primaryText
-                    )
-                    .multilineTextAlignment(
-                        .center
-                    )
+                    .foregroundStyle(Color.primaryText)
+                    .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .minimumScaleFactor(0.78)
 
@@ -236,14 +231,9 @@ private struct ProfileHero: View {
                         systemImage: "globe"
                     )
                 }
-                .frame(
-                    maxWidth: .infinity
-                )
             }
         }
-        .frame(
-            maxWidth: .infinity
-        )
+        .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
         .padding(.horizontal, 14)
     }
@@ -252,7 +242,6 @@ private struct ProfileHero: View {
 // MARK: - Profile Pill
 
 private struct ProfilePill: View {
-
     let text: String
     let systemImage: String
 
@@ -276,7 +265,6 @@ private struct ProfilePill: View {
 // MARK: - Profile Section
 
 private struct ProfileSection<Content: View>: View {
-
     let title: String
 
     @ViewBuilder
@@ -302,7 +290,6 @@ private struct ProfileSection<Content: View>: View {
 // MARK: - Fact Row
 
 private struct FactRow: View {
-
     let icon: String
     let label: String
     let value: String
@@ -312,19 +299,15 @@ private struct FactRow: View {
             alignment: .top,
             spacing: 10
         ) {
-            Image(
-                systemName: icon
-            )
-            .font(
-                .system(
-                    size: 14,
-                    weight: .semibold
+            Image(systemName: icon)
+                .font(
+                    .system(
+                        size: 14,
+                        weight: .semibold
+                    )
                 )
-            )
-            .foregroundStyle(
-                Color.tealButton
-            )
-            .frame(width: 22)
+                .foregroundStyle(Color.tealButton)
+                .frame(width: 22)
 
             VStack(
                 alignment: .leading,
@@ -332,9 +315,7 @@ private struct FactRow: View {
             ) {
                 Text(label)
                     .font(.caption)
-                    .foregroundStyle(
-                        Color.secondaryText
-                    )
+                    .foregroundStyle(Color.secondaryText)
 
                 Text(value)
                     .font(
@@ -343,9 +324,7 @@ private struct FactRow: View {
                             weight: .medium
                         )
                     )
-                    .foregroundStyle(
-                        Color.primaryText
-                    )
+                    .foregroundStyle(Color.primaryText)
                     .fixedSize(
                         horizontal: false,
                         vertical: true
@@ -364,11 +343,18 @@ private struct ToastBanner: View {
 
     var body: some View {
         Text(message)
-            .font(.system(size: 13, weight: .semibold))
+            .font(
+                .system(
+                    size: 13,
+                    weight: .semibold
+                )
+            )
             .foregroundStyle(Color.white)
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background(Color.black.opacity(0.85))
+            .background(
+                Color.black.opacity(0.85)
+            )
             .clipShape(Capsule())
             .padding(.top, 10)
     }

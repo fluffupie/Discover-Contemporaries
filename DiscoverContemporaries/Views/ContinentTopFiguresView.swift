@@ -39,7 +39,7 @@ struct ContinentTopFiguresView: View {
                         figure: figure
                     )
                 } label: {
-                    FigureListRow(
+                    FigureList(
                         name: figure.name,
                         subtitle: figure.descriptionText,
                         imageName: figure.imageName,

@@ -33,39 +33,39 @@ struct HomeView: View {
                 }
 
                 if model.hasSearchQuery {
-                                    SearchResultsSection(
-                                        isLoading: model.isLoading,
-                                        errorMessage: model.errorMessage,
-                                        results: model.searchResults
-                                    )
-                                } else {
-                                    ExploreFiguresSection(
-                                        figures: model.defaultFigures(
-                                            from: cachedFigures
-                                        )
-                                    )
+                    SearchResultsSection(
+                        isLoading: model.isLoading,
+                        errorMessage: model.errorMessage,
+                        results: model.searchResults
+                    )
+                } else {
+                    ExploreFiguresSection(
+                        figures: model.defaultFigures(
+                            from: cachedFigures
+                        )
+                    )
 
-                                    let recentFigures = model.recentlyViewedFigures(
-                                        from: cachedFigures
-                                    )
+                    let recentFigures = model.recentlyViewedFigures(
+                        from: cachedFigures
+                    )
 
-                                    if !recentFigures.isEmpty {
-                                        RecentlyViewedSection(
-                                            figures: recentFigures
-                                        )
-                                    }
-                                }
-                            }
-                            .padding(.horizontal, 22)
-                            .padding(.top, 14)
-                            .padding(.bottom, 24)
-                        }
-                        .background(Color.appBackground)
-                        .navigationTitle("Home")
-                        .navigationBarTitleDisplayMode(.inline)
-                        .task {
-                            setupHome()
-                        }
+                    if !recentFigures.isEmpty {
+                        RecentlyViewedSection(
+                            figures: recentFigures
+                        )
+                    }
+                }
+            }
+            .padding(.horizontal, 22)
+            .padding(.top, 14)
+            .padding(.bottom, 24)
+        }
+        .background(Color.appBackground)
+        .navigationTitle("Home")
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            setupHome()
+        }
     }
 
     // MARK: - Setup
@@ -243,7 +243,7 @@ private struct DefaultCachedFiguresGrid: View {
         GridItem(
             .flexible(),
             spacing: 12
-        )
+        ),
     ]
 
     var body: some View {
@@ -313,7 +313,6 @@ private struct HeaderView: View {
 }
 
 // MARK: - Search Result Row
-
 private struct WikidataSearchResultRow: View {
 
     let result: WikidataSearchResult
@@ -329,7 +328,7 @@ private struct WikidataSearchResultRow: View {
             deathDate: nil,
             occupations: [],
             movements: [],
-            imageURL: nil,
+            imageURL: result.imageURL,
             imageName: nil
         )
     }
@@ -340,53 +339,12 @@ private struct WikidataSearchResultRow: View {
                 figure: figure
             )
         } label: {
-            HStack(spacing: 20) {
-                VStack(
-                    alignment: .leading,
-                    spacing: 10
-                ) {
-                    Text(result.label)
-                        .font(.headline)
-                        .foregroundStyle(
-                            Color.primaryText
-                        )
-
-                    if let description =
-                        result.description {
-                        Text(description)
-                            .font(.subheadline)
-                            .foregroundStyle(
-                                Color.secondaryText
-                            )
-                    }
-                }
-
-                Spacer()
-
-                Image(
-                    systemName: "chevron.right"
-                )
-                .font(
-                    .system(
-                        size: 13,
-                        weight: .semibold
-                    )
-                )
-                .foregroundStyle(
-                    Color.secondaryText
-                )
-            }
-            .frame(
-                maxWidth: .infinity,
-                alignment: .leading
+            FigureList(
+                name: result.label,
+                subtitle: result.description,
+                imageName: nil,
+                imageURL: result.imageURL
             )
-            .padding()
-            .background {
-                RoundedRectangle(
-                    cornerRadius: 12
-                )
-                .fill(Color.white)
-            }
         }
         .buttonStyle(.plain)
     }

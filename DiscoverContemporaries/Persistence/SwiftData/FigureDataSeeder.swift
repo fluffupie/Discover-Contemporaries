@@ -4,8 +4,12 @@ import SwiftData
 @MainActor
 enum FigureDataSeeder {
 
-    static func seedIfNeeded(context: ModelContext) throws {
-        let repository = FigureCacheRepository(context: context)
+    static func seedIfNeeded(
+        context: ModelContext
+    ) throws {
+        let repository = FigureCacheRepository(
+            context: context
+        )
 
         guard try !repository.hasAnyFigures() else {
             return
@@ -14,9 +18,13 @@ enum FigureDataSeeder {
         let seedData = try loadSeedData()
 
         for seedFigure in seedData.figures {
-            try repository.save(seedFigure.historicalFigure)
+            try repository.save(
+                seedFigure.historicalFigure
+            )
         }
     }
+
+    // MARK: - Loading
 
     private static func loadSeedData() throws -> FigureSeedData {
         guard let url = Bundle.main.url(
@@ -36,8 +44,15 @@ enum FigureDataSeeder {
 
     // MARK: - Errors
 
-    private enum SeedError: Error {
+    private enum SeedError: LocalizedError {
         case missingFiguresData
+
+        var errorDescription: String? {
+            switch self {
+            case .missingFiguresData:
+                return "FiguresData.json could not be found in the app bundle."
+            }
+        }
     }
 
     // MARK: - Seed Models
@@ -75,7 +90,9 @@ enum FigureDataSeeder {
             )
         }
 
-        private static func parseDate(_ text: String?) -> Date? {
+        private static func parseDate(
+            _ text: String?
+        ) -> Date? {
             guard let text, !text.isEmpty else {
                 return nil
             }
@@ -83,7 +100,9 @@ enum FigureDataSeeder {
             return dateFormatter.date(from: text)
         }
 
-        private static func parseURL(_ text: String?) -> URL? {
+        private static func parseURL(
+            _ text: String?
+        ) -> URL? {
             guard let text, !text.isEmpty else {
                 return nil
             }

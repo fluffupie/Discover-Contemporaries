@@ -22,7 +22,7 @@ final class CachedHistoricalFigure {
     var movements: [String]
 
     var cachedAt: Date
-    var lastViewedAt: Date
+    var lastViewedAt: Date?
 
     init(
         wikidataID: String,
@@ -49,7 +49,7 @@ final class CachedHistoricalFigure {
         self.occupations = occupations
         self.movements = movements
         self.cachedAt = Date()
-        self.lastViewedAt = Date()
+        self.lastViewedAt = nil
     }
 }
 

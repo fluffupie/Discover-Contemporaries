@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ContinentFiguresView: View {
+
     private let continents = [
         Continent(id: "Q15", name: "Africa"),
         Continent(id: "Q48", name: "Asia"),
@@ -16,13 +17,22 @@ struct ContinentFiguresView: View {
             NavigationLink(value: continent) {
                 Label(
                     continent.name,
-                    systemImage: "globe.americas.fill"
+                    systemImage: "globe"
                 )
+                .foregroundStyle(Color.primaryText)
             }
         }
-        .navigationDestination(for: Continent.self) { continent in
-            ContinentTopFiguresView(continent: continent)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color.appBackground)
+        .navigationDestination(
+            for: Continent.self
+        ) { continent in
+            ContinentTopFiguresView(
+                continent: continent
+            )
         }
         .navigationTitle("Continents")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

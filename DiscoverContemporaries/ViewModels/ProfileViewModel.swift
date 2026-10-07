@@ -12,21 +12,21 @@ final class ProfileViewModel: ObservableObject {
     @Published private(set) var cachedBirthPlace: String?
     @Published private(set) var cachedBirthDate: Date?
     @Published private(set) var cachedDeathDate: Date?
-    
+
     @Published private(set) var isBookmarked = false
     @Published private(set) var bookmarkMessage: String?
+
+    private var hasLoadedNetworkDetails = false
 
     init(figure: HistoricalFigure) {
         self.figure = figure
     }
-    
-    func load(context: ModelContext) {
-        let repository = FigureCacheRepository(context: context)
-        load(repository: repository)
-    }
-    
+
+    // MARK: - Display Values
+
     var summaryText: String {
-        figure.descriptionText ?? "No description available yet."
+        figure.descriptionText
+            ?? "No description available yet."
     }
 
     var roleLabel: String {
@@ -35,6 +35,27 @@ final class ProfileViewModel: ObservableObject {
 
     var movementText: String {
         figure.movementsText
+    }
+
+    var imageName: String? {
+        cachedImageName ?? figure.imageName
+    }
+
+    var imageURL: URL? {
+        resolvedImageURL
+    }
+
+    var birthPlace: String {
+        resolvedBirthPlace
+            ?? "Unknown birth place"
+    }
+
+    var lifespanText: String {
+        resolvedFigure.lifespan
+    }
+
+    var ageText: String {
+        resolvedFigure.ageText
     }
 
     // MARK: - Resolved Values
@@ -55,38 +76,44 @@ final class ProfileViewModel: ObservableObject {
         cachedImageURL ?? figure.imageURL
     }
 
-    // MARK: - UI Values
-
-    var imageName: String? {
-        cachedImageName ?? figure.imageName
-    }
-
-    var imageURL: URL? {
-        resolvedImageURL
-    }
-
-    var birthPlace: String {
-        resolvedBirthPlace ?? "Unknown birth place"
-    }
-
-    var lifespanText: String {
-        resolvedFigure.lifespan
-    }
-
-    var ageText: String {
-        resolvedFigure.ageText
+    var resolvedFigure: HistoricalFigure {
+        HistoricalFigure(
+            id: figure.id,
+            name: figure.name,
+            descriptionText: figure.descriptionText,
+            gender: figure.gender,
+            birthPlace: resolvedBirthPlace,
+            birthDate: resolvedBirthDate,
+            deathDate: resolvedDeathDate,
+            occupations: figure.occupations,
+            movements: figure.movements,
+            imageURL: resolvedImageURL,
+            imageName: imageName
+        )
     }
 
     // MARK: - Loading
 
-    func load(repository: FigureCacheRepository) {
+    func load(context: ModelContext) {
+        let repository = FigureCacheRepository(
+            context: context
+        )
+
+        load(repository: repository)
+    }
+
+    func load(
+        repository: FigureCacheRepository
+    ) {
         loadFromCache(repository)
 
         guard needsNetworkDetails else {
             return
         }
 
-        loadMissingDetails(repository: repository)
+        loadMissingDetails(
+            repository: repository
+        )
     }
 
     private func loadFromCache(
@@ -112,6 +139,12 @@ final class ProfileViewModel: ObservableObject {
     private func loadMissingDetails(
         repository: FigureCacheRepository
     ) {
+        guard !hasLoadedNetworkDetails else {
+            return
+        }
+
+        hasLoadedNetworkDetails = true
+
         WikidataAPI.fetchDetails(
             forID: figure.id
         ) { [weak self] details in
@@ -122,78 +155,28 @@ final class ProfileViewModel: ObservableObject {
                 return
             }
 
-            if self.resolvedBirthDate == nil {
-                self.cachedBirthDate = details.birthDate
+            if resolvedBirthDate == nil {
+                cachedBirthDate = details.birthDate
             }
 
-            if self.resolvedDeathDate == nil {
-                self.cachedDeathDate = details.deathDate
+            if resolvedDeathDate == nil {
+                cachedDeathDate = details.deathDate
             }
 
-            if self.resolvedImageURL == nil {
-                self.cachedImageURL = details.portraitURL
+            if resolvedImageURL == nil {
+                cachedImageURL = details.portraitURL
             }
 
-            self.loadCountryIfNeeded(
-                countryID: details.countryID,
-                repository: repository
-            )
-
-            self.saveToCache(repository)
+            saveToCache(repository)
         }
     }
-
-    private func loadCountryIfNeeded(
-        countryID: String?,
-        repository: FigureCacheRepository
-    ) {
-        guard
-            resolvedBirthPlace == nil,
-            let countryID
-        else {
-            return
-        }
-
-        WikidataAPI.fetchEntityLabel(
-            forID: countryID
-        ) { [weak self] country in
-            guard
-                let self,
-                let country
-            else {
-                return
-            }
-
-            self.cachedBirthPlace = country
-            self.saveToCache(repository)
-        }
-    }
-
-    // MARK: - Network State
 
     private var needsNetworkDetails: Bool {
-        resolvedBirthDate == nil
-            || resolvedDeathDate == nil
-            || resolvedImageURL == nil
-            || resolvedBirthPlace == nil
-    }
-
-    // MARK: - Resolved Figure
-
-    private var resolvedFigure: HistoricalFigure {
-        HistoricalFigure(
-            id: figure.id,
-            name: figure.name,
-            descriptionText: figure.descriptionText,
-            gender: figure.gender,
-            birthPlace: resolvedBirthPlace,
-            birthDate: resolvedBirthDate,
-            deathDate: resolvedDeathDate,
-            occupations: figure.occupations,
-            movements: figure.movements,
-            imageURL: resolvedImageURL,
-            imageName: imageName
-        )
+        !hasLoadedNetworkDetails
+            && (
+                resolvedBirthDate == nil
+                    || resolvedImageURL == nil
+            )
     }
 
     // MARK: - Cache Persistence
@@ -202,39 +185,53 @@ final class ProfileViewModel: ObservableObject {
         _ repository: FigureCacheRepository
     ) {
         do {
-            try repository.save(resolvedFigure)
+            try repository.save(
+                resolvedFigure
+            )
         } catch {
             print(
                 "Failed to cache figure \(figure.id): \(error)"
             )
         }
     }
-    
+
+    // MARK: - Bookmark
+
     func loadBookmarkState() async {
-            do {
-                isBookmarked = try await BookmarkService.shared.isSaved(figure.id)
-            } catch {
+        do {
+            isBookmarked = try await BookmarkService
+                .shared
+                .isSaved(figure.id)
+        } catch {
+            isBookmarked = false
+        }
+    }
+
+    func toggleBookmark() async {
+        bookmarkMessage = nil
+
+        do {
+            if isBookmarked {
+                try await BookmarkService
+                    .shared
+                    .remove(figure.id)
+
                 isBookmarked = false
-            }
-        }
+                bookmarkMessage = "Removed from collection"
+            } else {
+                try await BookmarkService
+                    .shared
+                    .save(resolvedFigure)
 
-        func toggleBookmark() async {
-            do {
-                if isBookmarked {
-                    try await BookmarkService.shared.remove(figure.id)
-                    isBookmarked = false
-                    bookmarkMessage = "Removed from collection"
-                } else {
-                    try await BookmarkService.shared.save(figure)
-                    isBookmarked = true
-                    bookmarkMessage = "Figure saved!"
-                }
-            } catch {
-                bookmarkMessage = "Something went wrong"
+                isBookmarked = true
+                bookmarkMessage = "Figure saved!"
             }
+        } catch {
+            bookmarkMessage = "Something went wrong"
         }
+    }
 
-        func clearBookmarkMessage() {
-            bookmarkMessage = nil
-        }
+    func clearBookmarkMessage() {
+        bookmarkMessage = nil
+    }
 }

@@ -39,7 +39,7 @@ struct BookmarkView: View {
                         figure: figure.historicalFigure
                     )
                 } label: {
-                    FigureListRow(
+                    FigureList(
                         name: figure.name,
                         subtitle: figure.descriptionText,
                         imageName: figure.imageName,
@@ -59,30 +59,20 @@ struct BookmarkView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "heart")
-                .font(.system(size: 40, weight: .semibold))
-                .foregroundStyle(Color.secondaryText)
-
-            Text("Saved figures")
-                .font(.headline)
-                .foregroundStyle(Color.primaryText)
-
-            Text("Your bookmarked profiles will appear here.")
-                .font(.subheadline)
-                .foregroundStyle(Color.secondaryText)
-                .multilineTextAlignment(.center)
-        }
-        .frame(
-            maxWidth: .infinity,
-            maxHeight: .infinity
+        ContentUnavailableView(
+            "No saved figures",
+            systemImage: "heart",
+            description: Text(
+                "Your bookmarked profiles will appear here."
+            )
         )
-        .padding(24)
     }
 
     // MARK: - Error State
 
-    private func errorView(message: String) -> some View {
+    private func errorView(
+        message: String
+    ) -> some View {
         ContentUnavailableView(
             "Unable to load saves",
             systemImage: "exclamationmark.triangle",
@@ -92,60 +82,17 @@ struct BookmarkView: View {
 
     // MARK: - Actions
 
-    private func removeFigures(at offsets: IndexSet) {
+    private func removeFigures(
+        at offsets: IndexSet
+    ) {
         let figuresToRemove = offsets.map {
             model.figures[$0]
         }
 
-        for figure in figuresToRemove {
-            Task {
+        Task {
+            for figure in figuresToRemove {
                 await model.remove(figure)
             }
         }
-    }
-}
-
-// MARK: - Figure List Row
-
-struct FigureListRow: View {
-    let name: String
-    let subtitle: String?
-    let imageName: String?
-    let imageURL: URL?
-
-    var body: some View {
-        HStack(spacing: 14) {
-            PortraitImage(
-                imageName: imageName,
-                imageURL: imageURL
-            )
-            .frame(width: 60, height: 60)
-            .clipShape(
-                RoundedRectangle(cornerRadius: 5)
-            )
-
-            VStack(alignment: .leading, spacing: 5) {
-                Text(name)
-                    .font(.headline)
-                    .foregroundStyle(Color.primaryText)
-                    .lineLimit(2)
-
-                if let subtitle, !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(Color.secondaryText)
-                        .lineLimit(2)
-                }
-            }
-
-            Spacer(minLength: 0)
-        }
-        .padding(.vertical, 4)
-    }
-}
-
-#Preview {
-    NavigationStack {
-        BookmarkView()
     }
 }

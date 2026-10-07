@@ -48,20 +48,37 @@ final class FirebaseBookmarkAdapter {
         let userID = try currentUserID()
         let bookmarked = BookmarkedFigure(from: figure)
 
+        var data: [String: Any] = [
+            "id": bookmarked.id,
+            "name": bookmarked.name,
+            "savedAt": FieldValue.serverTimestamp()
+        ]
+
+        if let descriptionText = bookmarked.descriptionText {
+            data["descriptionText"] = descriptionText
+        }
+
+        if let birthDate = bookmarked.birthDate {
+            data["birthDate"] = Timestamp(date: birthDate)
+        }
+
+        if let deathDate = bookmarked.deathDate {
+            data["deathDate"] = Timestamp(date: deathDate)
+        }
+
+        if let imageURL = bookmarked.imageURL {
+            data["imageURL"] = imageURL.absoluteString
+        }
+
+        if let imageName = bookmarked.imageName {
+            data["imageName"] = imageName
+        }
+
         try await bookmarkDocument(
             userID: userID,
             figureID: bookmarked.id
         )
-        .setData([
-            "id": bookmarked.id,
-            "name": bookmarked.name,
-            "descriptionText": bookmarked.descriptionText as Any,
-            "birthDate": bookmarked.birthDate as Any,
-            "deathDate": bookmarked.deathDate as Any,
-            "imageURL": bookmarked.imageURL?.absoluteString as Any,
-            "imageName": bookmarked.imageName as Any,
-            "savedAt": FieldValue.serverTimestamp()
-        ])
+        .setData(data)
     }
 
     func remove(_ figureID: String) async throws {
@@ -100,11 +117,15 @@ final class FirebaseBookmarkAdapter {
             let data = document.data()
 
             return BookmarkedFigure(
-                id: data["id"] as? String ?? document.documentID,
-                name: data["name"] as? String ?? "Unknown",
+                id: data["id"] as? String
+                    ?? document.documentID,
+                name: data["name"] as? String
+                    ?? "Unknown",
                 descriptionText: data["descriptionText"] as? String,
-                birthDate: (data["birthDate"] as? Timestamp)?.dateValue(),
-                deathDate: (data["deathDate"] as? Timestamp)?.dateValue(),
+                birthDate: (data["birthDate"] as? Timestamp)?
+                    .dateValue(),
+                deathDate: (data["deathDate"] as? Timestamp)?
+                    .dateValue(),
                 imageURL: (data["imageURL"] as? String)
                     .flatMap(URL.init(string:)),
                 imageName: data["imageName"] as? String

@@ -40,7 +40,7 @@ struct CompareSearchView: View {
                         Button {
                             select(result)
                         } label: {
-                            FigureListRow(
+                            FigureList(
                                 name: result.label,
                                 subtitle: result.description,
                                 imageName: nil,

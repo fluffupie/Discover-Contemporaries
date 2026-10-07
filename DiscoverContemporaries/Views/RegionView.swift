@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RegionView: View {
+
     private let continents = [
         Continent(id: "Q15", name: "Africa"),
         Continent(id: "Q48", name: "Asia"),
@@ -28,8 +29,7 @@ struct RegionView: View {
                 }
             }
             .padding(.horizontal, 24)
-            .padding(.top, 16)
-            .padding(.bottom, 24)
+            .padding(.vertical, 16)
         }
         .background(Color.appBackground)
         .navigationTitle("Region")
@@ -40,11 +40,12 @@ struct RegionView: View {
 // MARK: - Region Row
 
 private struct RegionRow: View {
+
     let continent: Continent
 
     var body: some View {
         HStack(spacing: 14) {
-            Image(systemName: "globe.americas.fill")
+            Image(systemName: "globe")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.tealButton)
                 .frame(width: 44, height: 44)

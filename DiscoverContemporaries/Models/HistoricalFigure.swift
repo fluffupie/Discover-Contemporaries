@@ -77,23 +77,32 @@ struct HistoricalFigure: Decodable, Identifiable, Hashable {
     /// A concise secondary line suitable for list subtitles.
     /// Prefers description text; otherwise composes from occupation, birthplace, and lifespan.
     var subtitle: String? {
-        if let desc = descriptionText?.trimmingCharacters(in: .whitespacesAndNewlines), !desc.isEmpty {
-            return desc
+        if let description = descriptionText?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !description.isEmpty {
+            return description
         }
 
         var parts: [String] = []
-        let occupation = primaryOccupation
-        if !occupation.isEmpty {
+
+        if let occupation = occupations.first,
+           !occupation.isEmpty {
             parts.append(occupation)
         }
-        if let place = birthPlace?.trimmingCharacters(in: .whitespacesAndNewlines), !place.isEmpty {
+
+        if let place = birthPlace?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !place.isEmpty {
             parts.append(place)
         }
-        // Always include lifespan if we have at least a birth date; `lifespan` already formats Unknown/Present gracefully.
-        parts.append(lifespan)
 
-        let joined = parts.joined(separator: " • ")
-        return joined.isEmpty ? nil : joined
+        if birthDate != nil {
+            parts.append(lifespan)
+        }
+
+        return parts.isEmpty
+            ? nil
+            : parts.joined(separator: " • ")
     }
 
     // MARK: - Search

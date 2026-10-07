@@ -58,11 +58,15 @@ struct ComparisonView: View {
     private struct LifespanTimeline: View {
         let firstFigure: HistoricalFigure
         let secondFigure: HistoricalFigure
+       
         let timeline: LifespanTimelineData
 
         var body: some View {
             VStack(alignment: .leading, spacing: 18) {
-                overlapHeader
+
+                if timeline.hasOverlap {
+                    overlapHeader
+                }
 
                 yearScale
 
@@ -119,15 +123,19 @@ struct ComparisonView: View {
         private var yearScale: some View {
             VStack(spacing: 4) {
                 HStack {
-                    tickLabel(timeline.startYear)
+                    tickLabel("\(timeline.startYear)")
 
                     Spacer()
 
-                    tickLabel(timeline.middleYear)
+                    tickLabel("\(timeline.middleYear)")
 
                     Spacer()
 
-                    tickLabel(timeline.endYear)
+                    tickLabel(
+                        timeline.endsAtPresent
+                            ? "Present"
+                            : "\(timeline.endYear)"
+                    )
                 }
 
                 Rectangle()
@@ -136,9 +144,11 @@ struct ComparisonView: View {
             }
         }
 
-        private func tickLabel(_ year: Int) -> some View {
+        private func tickLabel(
+            _ text: String
+        ) -> some View {
             VStack(spacing: 3) {
-                Text("\(year)")
+                Text(text)
                     .font(.caption2)
                     .foregroundStyle(Color.secondaryText)
 
@@ -155,9 +165,22 @@ struct ComparisonView: View {
             isLiving: Bool
         ) -> some View {
             VStack(alignment: .leading, spacing: 8) {
-                Text(figure.name)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.primaryText)
+
+                HStack {
+                    Text(figure.name)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.primaryText)
+
+                    Spacer()
+
+                    Text(
+                        isLiving
+                            ? "\(birthYear) – Present"
+                            : "\(birthYear) – \(deathYear)"
+                    )
+                    .font(.caption2)
+                    .foregroundStyle(Color.secondaryText)
+                }
 
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
@@ -213,7 +236,11 @@ struct ComparisonView: View {
                         HStack {
                             Text("\(timeline.overlapStartYear)")
                             Spacer()
-                            Text("\(timeline.overlapEndYear)")
+                            Text(
+                                timeline.overlapEndsAtPresent
+                                    ? "Present"
+                                    : "\(timeline.overlapEndYear)"
+                            )
                         }
                         .frame(width: width)
                         .font(.caption2)
@@ -294,7 +321,9 @@ struct ComparisonView: View {
             let firstDeath = firstFigure.deathDate ?? Date()
             let secondDeath = secondFigure.deathDate ?? Date()
 
-            let calendar = Calendar(identifier: .gregorian)
+            let calendar = Calendar(
+                identifier: .gregorian
+            )
 
             firstBirthYear = calendar.component(
                 .year,
@@ -351,6 +380,14 @@ struct ComparisonView: View {
 
         var middleYear: Int {
             startYear + ((endYear - startYear) / 2)
+        }
+
+        var endsAtPresent: Bool {
+            firstIsLiving || secondIsLiving
+        }
+        
+        var overlapEndsAtPresent: Bool {
+            firstIsLiving && secondIsLiving
         }
     }
 }

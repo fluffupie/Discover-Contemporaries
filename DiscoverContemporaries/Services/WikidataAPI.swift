@@ -72,9 +72,8 @@ struct WikidataAPI {
             return
         }
 
-        let calendar = Calendar(
-            identifier: .gregorian
-        )
+        let calendar = Calendar(identifier: .gregorian)
+
         guard
             let searchStartDate = calendar.date(
                 byAdding: .year,
@@ -91,192 +90,75 @@ struct WikidataAPI {
             return
         }
 
-        let searchStart =
-            sparqlDateFormatter.string(
-                from: searchStartDate
-            )
+        let searchStart = sparqlDateFormatter.string(
+            from: searchStartDate
+        )
 
-        let searchEnd =
-            sparqlDateFormatter.string(
-                from: searchEndDate
-            )
+        let searchEnd = sparqlDateFormatter.string(
+            from: searchEndDate
+        )
 
         let query = """
-            SELECT DISTINCT
-                ?person
-                ?personLabel
-                ?birth
-                ?death
-                ?image
-                ?sitelinks
-            WHERE {
-                ?person wdt:P31 wd:Q5;
-                        wdt:P569 ?birth;
-                        wikibase:sitelinks ?sitelinks.
+        SELECT DISTINCT
+            ?person
+            ?personLabel
+            ?birth
+            ?death
+            ?image
+            ?sitelinks
+        WHERE {
+            ?person wdt:P31 wd:Q5 ;
+                    wdt:P569 ?birth ;
+                    wikibase:sitelinks ?sitelinks .
 
-                hint:Prior hint:rangeSafe true.
-
-                FILTER(
-                    "\(searchStart)T00:00:00Z"^^xsd:dateTime <= ?birth &&
-                    ?birth <= "\(searchEnd)T23:59:59Z"^^xsd:dateTime
-                )
-
-                FILTER(?person != wd:\(figure.id))
-
-                FILTER(?sitelinks >= 200)
-
-                OPTIONAL {
-                    ?person wdt:P570 ?death.
-                }
-            OPTIONAL {
-                    ?person wdt:P18 ?image.
-                }
-
-                SERVICE wikibase:label {
-                    bd:serviceParam wikibase:language "en".
-                }
-            }
-            ORDER BY DESC(?sitelinks)
-            LIMIT 20
-            """
-
-        guard
-            var components = URLComponents(
-                string: sparqlURL
+            FILTER(
+                "\(searchStart)T00:00:00Z"^^xsd:dateTime <= ?birth &&
+                ?birth <= "\(searchEnd)T23:59:59Z"^^xsd:dateTime
             )
-        else {
-            completion([])
-            return
-        }
 
-        components.queryItems = [
-            URLQueryItem(
-                name: "query",
-                value: query
-            ),
-            URLQueryItem(
-                name: "format",
-                value: "json"
-            ),
-        ]
+            FILTER(?person != wd:\(figure.id))
+            FILTER(?sitelinks >= 200)
 
-        guard let url = components.url else {
-            completion([])
-            return
-        }
-
-        var request = request(for: url)
-
-        // Avoid leaving the UI waiting indefinitely.
-        request.timeoutInterval = 30
-
-        URLSession.shared.dataTask(
-            with: request
-        ) { data, response, error in
-
-            if let error {
-                print(
-                    "Contemporaries request failed: \(error)"
-                )
-
-                Task { @MainActor in
-                    completion([])
-                }
-
-                return
+            OPTIONAL {
+                ?person wdt:P570 ?death .
             }
 
-            if let httpResponse =
-                response as? HTTPURLResponse
-            {
-
-                print(
-                    "Contemporaries HTTP status: \(httpResponse.statusCode)"
-                )
-
-                guard
-                    (200...299).contains(
-                        httpResponse.statusCode
-                    )
-                else {
-                    Task { @MainActor in
-                        completion([])
-                    }
-
-                    return
-                }
+            OPTIONAL {
+                ?person wdt:P18 ?image .
             }
 
-            guard let data else {
-                print(
-                    "Contemporaries request returned no data."
-                )
-
-                Task { @MainActor in
-                    completion([])
-                }
-
-                return
-            }
-
-            Task { @MainActor in
-                do {
-                    let response =
-                        try JSONDecoder().decode(
-                            SPARQLResponse.self,
-                            from: data
-                        )
-                    
-                    let contemporaries =
-                        response.results.bindings
-                            .compactMap { binding -> ContemporaryFigure? in
-                                makeContemporary(
-                                    from: binding,
-                                    targetBirthDate: birthDate,
-                                    targetDeathDate: deathDate
-                                )
-                            }
-
-                    let uniqueContemporaries =
-                        removeDuplicateContemporaries(
-                            from: contemporaries
-                        )
-
-                    completion(
-                        Array(
-                            uniqueContemporaries.prefix(20)
-                        )
-                    )
-
-                    print(
-                        "Found \(contemporaries.count) contemporaries for \(figure.name)"
-                    )
-
-                    completion(
-                        Array(
-                            contemporaries.prefix(20)
-                        )
-                    )
-
-                } catch {
-                    print(
-                        "Failed to decode contemporaries: \(error)"
-                    )
-
-                    if let responseText = String(
-                        data: data,
-                        encoding: .utf8
-                    ) {
-                        print(
-                            "SPARQL response: \(responseText.prefix(500))"
-                        )
-                    }
-
-                    completion([])
-                }
+            SERVICE wikibase:label {
+                bd:serviceParam wikibase:language "en".
             }
         }
-        .resume()
+        ORDER BY DESC(?sitelinks)
+        LIMIT 40
+        """
+
+        executeSPARQL(query) { bindings in
+            let contemporaries = bindings.compactMap { binding in
+                makeContemporary(
+                    from: binding,
+                    targetBirthDate: birthDate,
+                    targetDeathDate: deathDate
+                )
+            }
+
+            let uniqueContemporaries =
+                removeDuplicateContemporaries(
+                    from: contemporaries
+                )
+
+            let results = Array(
+                uniqueContemporaries.prefix(20)
+            )
+
+            print(
+                "Found \(results.count) contemporaries for \(figure.name)"
+            )
+
+            completion(results)
+        }
     }
     
     private static func removeDuplicateContemporaries(
@@ -621,20 +503,24 @@ struct WikidataAPI {
                 return
             }
 
-            let humanIDs = Set(
-                response.entities
-                    .filter {
-                        $0.value.isHuman
-                    }
-                    .map(\.key)
-            )
-
-            let humanResults =
-                results.filter {
-                    humanIDs.contains(
-                        $0.id
-                    )
+            let humanResults = results.compactMap { result -> WikidataSearchResult? in
+                guard
+                    let entity = response.entities[result.id],
+                    entity.isHuman
+                else {
+                    return nil
                 }
+
+                let imageURL = entity.portraitFileName
+                    .flatMap(commonsImageURL)
+
+                return WikidataSearchResult(
+                    id: result.id,
+                    label: result.label,
+                    description: result.description,
+                    imageURL: imageURL
+                )
+            }
 
             completion(humanResults)
         }

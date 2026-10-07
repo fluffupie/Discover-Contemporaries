@@ -42,7 +42,7 @@ struct ContemporariesView: View {
                     figure: contemporary.historicalFigure
                 )
             } label: {
-                FigureListRow(
+                FigureList(
                     name: contemporary.name,
                     subtitle: contemporary.lifespanText,
                     imageName: nil,

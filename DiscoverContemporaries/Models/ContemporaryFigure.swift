@@ -7,6 +7,8 @@ struct ContemporaryFigure: Identifiable {
     let deathDate: Date?
     let imageURL: URL?
 
+    // MARK: - Conversion
+
     var historicalFigure: HistoricalFigure {
         HistoricalFigure(
             id: id,
@@ -18,11 +20,14 @@ struct ContemporaryFigure: Identifiable {
             deathDate: deathDate,
             occupations: [],
             movements: [],
-            imageURL: nil,
+            imageURL: imageURL,
             imageName: nil
         )
     }
+
+    // MARK: - Display Values
+
     var lifespanText: String {
-            historicalFigure.lifespan
-        }
+        historicalFigure.lifespan
+    }
 }

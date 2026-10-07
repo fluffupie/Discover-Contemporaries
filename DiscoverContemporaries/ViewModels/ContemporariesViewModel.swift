@@ -13,11 +13,17 @@ final class ContemporariesViewModel: ObservableObject {
     @Published private(set)
     var errorMessage: String?
 
+    private var currentFigureID: String?
+
     func load(
         for figure: HistoricalFigure
     ) {
+        currentFigureID = figure.id
+
         isLoading = true
         errorMessage = nil
+
+        let requestedFigureID = figure.id
 
         WikidataAPI.fetchContemporaries(
             for: figure
@@ -26,13 +32,15 @@ final class ContemporariesViewModel: ObservableObject {
                 return
             }
 
+            guard currentFigureID == requestedFigureID else {
+                return
+            }
+
             self.figures = figures
             self.isLoading = false
-
-            if figures.isEmpty {
-                self.errorMessage =
-                    "No contemporaries found."
-            }
+            self.errorMessage = figures.isEmpty
+                ? "No contemporaries found."
+                : nil
         }
     }
 }

@@ -42,8 +42,6 @@ struct DiscoverContemporariesApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: [
-            CachedHistoricalFigure.self
-        ])
+        .modelContainer(for: CachedHistoricalFigure.self)
     }
 }

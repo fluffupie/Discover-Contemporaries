@@ -38,6 +38,8 @@ final class BookmarkViewModel: ObservableObject {
     // MARK: - Remove
 
     func remove(_ figure: BookmarkedFigure) async {
+        errorMessage = nil
+
         do {
             try await bookmarkService.remove(figure.id)
 
@@ -46,7 +48,9 @@ final class BookmarkViewModel: ObservableObject {
             }
         } catch {
             errorMessage = "Unable to remove saved figure."
-            print("Failed to remove bookmark \(figure.id): \(error)")
+            print(
+                "Failed to remove bookmark \(figure.id): \(error)"
+            )
         }
     }
 

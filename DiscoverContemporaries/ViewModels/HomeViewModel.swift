@@ -42,9 +42,11 @@ final class HomeViewModel: ObservableObject {
         cachedFigures
             .filter {
                 !defaultFigureIDs.contains($0.wikidataID)
+                    && $0.lastViewedAt != nil
             }
             .sorted {
-                $0.lastViewedAt > $1.lastViewedAt
+                ($0.lastViewedAt ?? .distantPast)
+                    > ($1.lastViewedAt ?? .distantPast)
             }
             .prefix(5)
             .map(\.historicalFigure)
@@ -64,17 +66,21 @@ final class HomeViewModel: ObservableObject {
         errorMessage = nil
 
         WikidataAPI.fetchFigures(query: query) { [weak self] results in
-            guard let self else { return }
+            guard let self else {
+                return
+            }
+
+            guard query == trimmedSearchText else {
+                return
+            }
 
             searchResults = results
             isLoading = false
-
-            if results.isEmpty {
-                errorMessage = "No figures found."
-            }
+            errorMessage = results.isEmpty
+                ? "No figures found."
+                : nil
         }
     }
-
     func clearSearch() {
         searchText = ""
         searchResults = []
