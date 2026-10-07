@@ -150,11 +150,13 @@ struct ProfileView: View {
 
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink {
-                    SearchAndCompareView(firstFigure: model.figure)
+                    CompareSearchView(
+                        firstFigure: model.figure
+                    )
                 } label: {
-                    Image(systemName: "arrow.left.and.right")
+                    Image(systemName: "arrow.left.arrow.right")
                         .font(.system(size: 16, weight: .semibold))
-                        .accessibilityLabel("Compare with someone")
+                        .accessibilityLabel("Compare")
                 }
             }
         }

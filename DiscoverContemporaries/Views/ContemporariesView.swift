@@ -1,4 +1,6 @@
 import SwiftUI
+import Combine
+import Foundation
 
 struct ContemporariesView: View {
     let figure: HistoricalFigure

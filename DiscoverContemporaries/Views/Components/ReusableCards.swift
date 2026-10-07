@@ -91,32 +91,36 @@ struct MigrationPlaceholderRow: View {
 
 struct CompareCard: View {
     let figure: HistoricalFigure
-    let tint: Color
-
+    
     var body: some View {
-        HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
             PortraitImage(imageURL: figure.imageURL)
-                .frame(width: 58, height: 58)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-
-            VStack(alignment: .leading, spacing: 4) {
+                .scaledToFill()
+                .frame(height: 135)
+                .frame(maxWidth: .infinity)
+                .clipped()
+            
+            VStack(alignment: .leading, spacing: 5) {
                 Text(figure.name)
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(Color.primaryText)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.9)
                 Text(figure.lifespan)
                     .font(.caption2)
                     .foregroundStyle(Color.secondaryText)
-                Text(figure.descriptionText ?? "No description available")
-                    .font(.caption2)
-                    .foregroundStyle(Color.secondaryText)
-                    .lineLimit(2)
+                Text(figure.ageText)
+                    .font(.system(size: 12, weight: .regular))
+               
             }
-
-            Spacer()
+            .padding(10)
         }
-        .padding(12)
-        .background(tint)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .background(Color.white)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.white.opacity(0.6), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
     }
 }

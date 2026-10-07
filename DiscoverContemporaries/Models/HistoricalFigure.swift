@@ -1,6 +1,6 @@
 import Foundation
 
-struct HistoricalFigure: Decodable, Identifiable {
+struct HistoricalFigure: Decodable, Identifiable, Hashable {
     let id: String  // Wikidata ID, e.g. "Q517"
     let name: String
     let descriptionText: String?
@@ -119,9 +119,9 @@ struct HistoricalFigure: Decodable, Identifiable {
 
         private static let displayDateFormatter: DateFormatter = {
             let formatter = DateFormatter()
-            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.locale = Locale(identifier: "en_AU_POSIX")
             formatter.calendar = Calendar(identifier: .gregorian)
-            formatter.dateFormat = "d MMM yyyy"
+            formatter.dateFormat = "dd/MM/yyyy"
             return formatter
         }()
 }
