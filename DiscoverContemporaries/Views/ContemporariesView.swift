@@ -8,50 +8,63 @@ struct ContemporariesView: View {
     var body: some View {
         Group {
             if model.isLoading {
-                ProgressView()
+                ProgressView("Loading…")
 
             } else if let errorMessage = model.errorMessage {
-                Text(errorMessage)
+                errorView(message: errorMessage)
+
+            } else if model.figures.isEmpty {
+                ContentUnavailableView(
+                    "No contemporaries",
+                    systemImage: "person.2"
+                )
 
             } else {
-                List {
-                    Section {
-                        ForEach(model.figures) { contemporary in
-                            NavigationLink {
-                                ProfileView(
-                                    figure: contemporary.historicalFigure
-                                )
-                            } label: {
-                                ContemporaryRow(
-                                    contemporary: contemporary
-                                )
-                            }
-                        }
-                    }
-                }
-                .listStyle(.plain)
+                contemporariesList
             }
         }
+        .background(Color.appBackground)
         .navigationTitle("Contemporaries")
+        .navigationBarTitleDisplayMode(.inline)
         .task {
             model.load(for: figure)
         }
     }
-}
 
-// MARK: - Contemporary Row
+    // MARK: - Contemporaries List
 
-private struct ContemporaryRow: View {
-    let contemporary: ContemporaryFigure
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(contemporary.name)
-                .font(.headline)
-
-            Text(contemporary.lifespanText)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+    private var contemporariesList: some View {
+        List(model.figures) { contemporary in
+            NavigationLink {
+                ProfileView(
+                    figure: contemporary.historicalFigure
+                )
+            } label: {
+                FigureListRow(
+                    name: contemporary.name,
+                    subtitle: contemporary.lifespanText,
+                    imageName: nil,
+                    imageURL: contemporary.imageURL
+                )
+            }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color.appBackground)
+    }
+
+    // MARK: - Error State
+
+    private func errorView(message: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.yellow)
+                .imageScale(.large)
+
+            Text(message)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Color.secondaryText)
+        }
+        .padding()
     }
 }

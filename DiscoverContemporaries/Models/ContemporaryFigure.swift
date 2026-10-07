@@ -5,6 +5,7 @@ struct ContemporaryFigure: Identifiable {
     let name: String
     let birthDate: Date?
     let deathDate: Date?
+    let imageURL: URL?
 
     var historicalFigure: HistoricalFigure {
         HistoricalFigure(

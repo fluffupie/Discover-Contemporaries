@@ -6,6 +6,7 @@ struct HistoricalFigure: Decodable, Identifiable {
     let descriptionText: String?
     let gender: String?
     let birthPlace: String?
+//    let country: String? // TODO:
 
     let birthDate: Date?
     let deathDate: Date?
