@@ -11,6 +11,8 @@ final class ComparisonViewModel: ObservableObject {
 
     private var searchTask: Task<Void, Never>?
 
+    // MARK: - Search
+
     func searchTextChanged() {
         searchTask?.cancel()
 
@@ -42,7 +44,9 @@ final class ComparisonViewModel: ObservableObject {
         errorMessage = nil
 
         WikidataAPI.fetchFigures(query: query) { [weak self] newResults in
-            guard let self else { return }
+            guard let self else {
+                return
+            }
 
             results = newResults
             isLoading = false
@@ -53,8 +57,84 @@ final class ComparisonViewModel: ObservableObject {
         }
     }
 
+    func clearSearch() {
+        searchText = ""
+        clearResults()
+    }
+
+    // MARK: - Figure Selection
+
+    func resolveFigure(
+        from result: WikidataSearchResult,
+        repository: FigureCacheRepository
+    ) async -> HistoricalFigure? {
+
+        if let cachedFigure = try? repository.fetchFigure(
+            withID: result.id
+        ) {
+            return cachedFigure
+        }
+
+        guard let figure = await fetchFigureDetails(
+            from: result
+        ) else {
+            errorMessage = "Unable to load figure details."
+            return nil
+        }
+
+        do {
+            try repository.save(figure)
+        } catch {
+            print(
+                "Failed to cache comparison figure \(figure.id): \(error)"
+            )
+        }
+
+        return figure
+    }
+
+    // MARK: - Helpers
+
+    private func fetchFigureDetails(
+        from result: WikidataSearchResult
+    ) async -> HistoricalFigure? {
+        await withCheckedContinuation { continuation in
+            WikidataAPI.fetchDetails(
+                forID: result.id
+            ) { details in
+
+                guard let details else {
+                    continuation.resume(
+                        returning: nil
+                    )
+                    return
+                }
+
+                let figure = HistoricalFigure(
+                    id: result.id,
+                    name: result.label,
+                    descriptionText: result.description,
+                    gender: nil,
+                    birthPlace: nil,
+                    birthDate: details.birthDate,
+                    deathDate: details.deathDate,
+                    occupations: [],
+                    movements: [],
+                    imageURL: details.portraitURL,
+                    imageName: nil
+                )
+
+                continuation.resume(
+                    returning: figure
+                )
+            }
+        }
+    }
+
     private var trimmedSearchText: String {
-        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        searchText.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
     }
 
     private func clearResults() {
