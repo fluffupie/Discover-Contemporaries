@@ -66,6 +66,25 @@ final class FigureCacheRepository {
         return try context.fetch(descriptor)
             .map(\.historicalFigure)
     }
+    
+    // method to fetch cached figures by a list of IDs
+    func fetchFigures(
+        withIDs ids: [String]
+    ) throws -> [HistoricalFigure] {
+        let cachedFigures = try context.fetch(
+            FetchDescriptor<CachedHistoricalFigure>()
+        )
+
+        let figuresByID = Dictionary(
+            uniqueKeysWithValues: cachedFigures.map {
+                ($0.wikidataID, $0.historicalFigure)
+            }
+        )
+
+        return ids.compactMap {
+            figuresByID[$0]
+        }
+    }
 
     // MARK: - Save
 
@@ -78,6 +97,25 @@ final class FigureCacheRepository {
             context.insert(
                 CachedHistoricalFigure(from: figure)
             )
+        }
+
+        try context.save()
+    }
+    
+    // Use saveAll for continent batches.
+    func saveAll(
+        _ figures: [HistoricalFigure]
+    ) throws {
+        for figure in figures {
+            if let existingFigure = try fetchCachedFigure(
+                withID: figure.id
+            ) {
+                existingFigure.update(from: figure)
+            } else {
+                context.insert(
+                    CachedHistoricalFigure(from: figure)
+                )
+            }
         }
 
         try context.save()

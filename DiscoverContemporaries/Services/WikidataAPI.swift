@@ -99,41 +99,41 @@ struct WikidataAPI {
         )
 
         let query = """
-        SELECT DISTINCT
-            ?person
-            ?personLabel
-            ?birth
-            ?death
-            ?image
-            ?sitelinks
-        WHERE {
-            ?person wdt:P31 wd:Q5 ;
-                    wdt:P569 ?birth ;
-                    wikibase:sitelinks ?sitelinks .
+            SELECT DISTINCT
+                ?person
+                ?personLabel
+                ?birth
+                ?death
+                ?image
+                ?sitelinks
+            WHERE {
+                ?person wdt:P31 wd:Q5 ;
+                        wdt:P569 ?birth ;
+                        wikibase:sitelinks ?sitelinks .
 
-            FILTER(
-                "\(searchStart)T00:00:00Z"^^xsd:dateTime <= ?birth &&
-                ?birth <= "\(searchEnd)T23:59:59Z"^^xsd:dateTime
-            )
+                FILTER(
+                    "\(searchStart)T00:00:00Z"^^xsd:dateTime <= ?birth &&
+                    ?birth <= "\(searchEnd)T23:59:59Z"^^xsd:dateTime
+                )
 
-            FILTER(?person != wd:\(figure.id))
-            FILTER(?sitelinks >= 200)
+                FILTER(?person != wd:\(figure.id))
+                FILTER(?sitelinks >= 200)
 
-            OPTIONAL {
-                ?person wdt:P570 ?death .
+                OPTIONAL {
+                    ?person wdt:P570 ?death .
+                }
+
+                OPTIONAL {
+                    ?person wdt:P18 ?image .
+                }
+
+                SERVICE wikibase:label {
+                    bd:serviceParam wikibase:language "en".
+                }
             }
-
-            OPTIONAL {
-                ?person wdt:P18 ?image .
-            }
-
-            SERVICE wikibase:label {
-                bd:serviceParam wikibase:language "en".
-            }
-        }
-        ORDER BY DESC(?sitelinks)
-        LIMIT 40
-        """
+            ORDER BY DESC(?sitelinks)
+            LIMIT 40
+            """
 
         executeSPARQL(query) { bindings in
             let contemporaries = bindings.compactMap { binding in
@@ -160,7 +160,7 @@ struct WikidataAPI {
             completion(results)
         }
     }
-    
+
     private static func removeDuplicateContemporaries(
         from figures: [ContemporaryFigure]
     ) -> [ContemporaryFigure] {
@@ -247,54 +247,70 @@ struct WikidataAPI {
         forContinentID id: String,
         completion: @escaping ([HistoricalFigure]) -> Void
     ) {
-        let query = """
-            SELECT DISTINCT
-                ?person
-                ?personLabel
-                ?birth
-                ?death
-                ?sitelinks
-            WHERE {
-                VALUES ?continent { wd:\(id) }
+        let ids = ContinentFigureSeeds.ids(
+            for: id
+        )
 
-                ?person wdt:P31 wd:Q5 ;
-                        wikibase:sitelinks ?sitelinks .
+        guard !ids.isEmpty else {
+            completion([])
+            return
+        }
 
-                FILTER(?sitelinks >= 150)
+        fetchFigures(
+            withIDs: ids,
+            completion: completion
+        )
+    }
 
-                OPTIONAL { ?person wdt:P569 ?birth. }
-                OPTIONAL { ?person wdt:P570 ?death. }
+    static func fetchFigures(
+        withIDs ids: [String],
+        completion: @escaping ([HistoricalFigure]) -> Void
+    ) {
+        guard let url = makeEntitiesURL(
+            ids: ids,
+            properties: "claims|labels|descriptions"
+        ) else {
+            completion([])
+            return
+        }
 
-                {
-                    # Primary filter:
-                    # Use country of citizenship (P27)
-                    ?person wdt:P27 ?country .
-                    ?country wdt:P30 ?continent .
-                }
-                UNION
-                {
-                    # Fallback:
-                    # Only use birthplace when P27 is completely missing
-                    FILTER NOT EXISTS {
-                        ?person wdt:P27 ?anyCountry .
-                    }
-
-                    ?person wdt:P19 ?birthPlace .
-                    ?birthPlace wdt:P17 ?country .
-                    ?country wdt:P30 ?continent .
-                }
-
-                SERVICE wikibase:label {
-                    bd:serviceParam wikibase:language "en".
-                }
+        fetch(
+            url: url,
+            as: WikidataEntitiesResponse.self
+        ) { response in
+            guard let response else {
+                completion([])
+                return
             }
-            ORDER BY DESC(?sitelinks)
-            LIMIT 10
-            """
 
-        executeSPARQL(query) { bindings in
-            let figures = bindings.compactMap(makeHistoricalFigure)
-            completion(figures)
+            var figuresByID: [String: HistoricalFigure] = [:]
+
+            for (id, entity) in response.entities {
+                guard let name = entity.englishLabel else {
+                    continue
+                }
+
+                figuresByID[id] = HistoricalFigure(
+                    id: id,
+                    name: name,
+                    descriptionText: entity.englishDescription,
+                    gender: nil,
+                    birthPlace: nil,
+                    birthDate: entity.birthDate,
+                    deathDate: entity.deathDate,
+                    occupations: [],
+                    movements: [],
+                    imageURL: entity.portraitFileName
+                        .flatMap(commonsImageURL),
+                    imageName: nil
+                )
+            }
+
+            let orderedFigures = ids.compactMap {
+                figuresByID[$0]
+            }
+
+            completion(orderedFigures)
         }
     }
 
@@ -503,7 +519,8 @@ struct WikidataAPI {
                 return
             }
 
-            let humanResults = results.compactMap { result -> WikidataSearchResult? in
+            let humanResults = results.compactMap {
+                result -> WikidataSearchResult? in
                 guard
                     let entity = response.entities[result.id],
                     entity.isHuman
@@ -813,6 +830,16 @@ private struct WikidataEntity: Decodable {
 
     let labels: [String: WikidataLabel]?
 
+    let descriptions: [String: WikidataLabel]?
+
+    var englishLabel: String? {
+        labels?["en"]?.value
+    }
+
+    var englishDescription: String? {
+        descriptions?["en"]?.value
+    }
+
     var isHuman: Bool {
         claims?["P31"]?
             .contains { claim in
@@ -835,10 +862,6 @@ private struct WikidataEntity: Decodable {
                     .id
             }
             ?? []
-    }
-
-    var englishLabel: String? {
-        labels?["en"]?.value
     }
 
     var portraitFileName: String? {

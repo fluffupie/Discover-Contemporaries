@@ -6,10 +6,8 @@ struct RegionView: View {
         Continent(id: "Q15", name: "Africa"),
         Continent(id: "Q48", name: "Asia"),
         Continent(id: "Q46", name: "Europe"),
-        Continent(id: "Q49", name: "North America"),
-        Continent(id: "Q18", name: "South America"),
-        Continent(id: "Q538", name: "Oceania"),
-        Continent(id: "Q51", name: "Antarctica")
+        Continent(id: "Q828", name: "Americas"),
+        Continent(id: "Q538", name: "Oceania")
     ]
 
     var body: some View {

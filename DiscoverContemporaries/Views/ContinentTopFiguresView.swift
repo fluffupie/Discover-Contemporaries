@@ -1,31 +1,39 @@
 import SwiftUI
+import SwiftData
 
 struct ContinentTopFiguresView: View {
     let continent: Continent
 
     @StateObject private var model = ContinentTopFiguresViewModel()
+    @Environment(\.modelContext)
+    private var modelContext
 
     var body: some View {
         Group {
-            if model.isLoading {
+            if model.figures.isEmpty && model.isLoading {
                 ProgressView("Loading…")
 
-            } else if let errorMessage = model.errorMessage {
-                errorView(message: errorMessage)
-
-            } else if model.figures.isEmpty {
+            } else if let errorMessage = model.errorMessage,
+                      model.figures.isEmpty {
                 ContentUnavailableView(
-                    "No results",
-                    systemImage: "person.fill.questionmark"
+                    "Unable to load figures",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text(errorMessage)
                 )
-
             } else {
                 figuresList
             }
         }
         .navigationTitle(continent.name)
         .task {
-            model.load(for: continent)
+            let repository = FigureCacheRepository(
+                context: modelContext
+            )
+
+            model.load(
+                for: continent,
+                repository: repository
+            )
         }
     }
 

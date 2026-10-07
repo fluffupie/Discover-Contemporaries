@@ -1,12 +1,15 @@
 import SwiftUI
 
 struct ExploreView: View {
+   
+    
     private let columns = [
         GridItem(.flexible(), spacing: 14),
         GridItem(.flexible(), spacing: 14),
     ]
 
     var body: some View {
+        
         ScrollView(showsIndicators: false) {
 
             VStack(

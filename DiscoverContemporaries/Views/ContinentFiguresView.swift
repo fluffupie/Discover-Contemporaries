@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ContinentFiguresView: View {
+    
 
     private let continents = [
         Continent(id: "Q15", name: "Africa"),
