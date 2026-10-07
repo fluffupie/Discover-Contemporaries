@@ -47,7 +47,7 @@ private struct RegionRow: View {
         HStack(spacing: 14) {
             Image(systemName: "globe")
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(Color.tealButton)
+                .foregroundStyle(Color.emerald)
                 .frame(width: 44, height: 44)
 
             Text(continent.name)

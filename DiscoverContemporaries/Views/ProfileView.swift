@@ -89,7 +89,7 @@ struct ProfileView: View {
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(Color.tealButton)
+                        .background(Color.emerald)
                         .clipShape(
                             RoundedRectangle(
                                 cornerRadius: 6
@@ -256,7 +256,7 @@ private struct ProfilePill: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(
-            Color.ochre.opacity(0.08)
+            Color.coral.opacity(0.08)
         )
         .clipShape(Capsule())
     }
@@ -306,7 +306,7 @@ private struct FactRow: View {
                         weight: .semibold
                     )
                 )
-                .foregroundStyle(Color.tealButton)
+                .foregroundStyle(Color.emerald)
                 .frame(width: 22)
 
             VStack(

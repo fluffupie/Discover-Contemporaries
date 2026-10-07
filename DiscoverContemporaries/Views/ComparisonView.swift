@@ -189,7 +189,7 @@ struct ComparisonView: View {
                             .frame(height: 12)
 
                         Capsule()
-                            .fill(Color.tealButton)
+                            .fill(Color.emerald)
                             .frame(
                                 width: barWidth(
                                     geometryWidth: geometry.size.width,
@@ -230,7 +230,7 @@ struct ComparisonView: View {
 
                     VStack(alignment: .leading, spacing: 4) {
                         Capsule()
-                            .fill(Color.tealButton.opacity(0.35))
+                            .fill(Color.emerald.opacity(0.35))
                             .frame(width: width, height: 16)
 
                         HStack {
