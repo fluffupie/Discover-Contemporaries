@@ -5,6 +5,7 @@ struct ContinentTopFiguresView: View {
     let continent: Continent
 
     @StateObject private var model = ContinentTopFiguresViewModel()
+
     @Environment(\.modelContext)
     private var modelContext
 
@@ -15,16 +16,26 @@ struct ContinentTopFiguresView: View {
 
             } else if let errorMessage = model.errorMessage,
                       model.figures.isEmpty {
+
                 ContentUnavailableView(
                     "Unable to load figures",
                     systemImage: "exclamationmark.triangle",
                     description: Text(errorMessage)
                 )
+
+            } else if model.figures.isEmpty {
+                ContentUnavailableView(
+                    "No figures found",
+                    systemImage: "person.crop.circle.badge.questionmark"
+                )
+
             } else {
                 figuresList
             }
         }
+        .background(Color.appBackground)
         .navigationTitle(continent.name)
+        .navigationBarTitleDisplayMode(.inline)
         .task {
             let repository = FigureCacheRepository(
                 context: modelContext
@@ -40,40 +51,23 @@ struct ContinentTopFiguresView: View {
     // MARK: - Figures List
 
     private var figuresList: some View {
-        List {
-            ForEach(model.figures) { figure in
-                NavigationLink {
-                    ProfileView(
-                        figure: figure
-                    )
-                } label: {
-                    FigureList(
-                        name: figure.name,
-                        subtitle: figure.descriptionText,
-                        imageName: figure.imageName,
-                        imageURL: figure.imageURL
-                    )
-                }
+        List(model.figures) { figure in
+            NavigationLink {
+                ProfileView(
+                    figure: figure
+                )
+            } label: {
+                FigureList(
+                    name: figure.name,
+                    subtitle: figure.descriptionText,
+                    imageName: figure.imageName,
+                    imageURL: figure.imageURL
+                )
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .background(Color.appBackground)
-    }
-
-    // MARK: - Error State
-
-    private func errorView(message: String) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.yellow)
-                .imageScale(.large)
-
-            Text(message)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-        }
-        .padding()
     }
 }
 
@@ -82,7 +76,8 @@ struct ContinentTopFiguresView: View {
         ContinentTopFiguresView(
             continent: Continent(
                 id: "Q46",
-                name: "Europe"
+                name: "Europe",
+                systemImage: "globe.europe.africa.fill"
             )
         )
     }

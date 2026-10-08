@@ -46,7 +46,7 @@ struct ExploreView: View {
                 }
 
                 NavigationLink {
-                    JobsView()
+                    OccupationView()
                 } label: {
                     ExploreWideCard(
                         title: "By Occupation",
