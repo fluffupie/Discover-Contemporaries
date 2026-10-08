@@ -1,7 +1,9 @@
 import SwiftUI
+import SwiftData
 
 struct ExploreView: View {
-   
+    @Query(sort: \CachedHistoricalFigure.name)
+    private var cachedFigures: [CachedHistoricalFigure]
     
     private let columns = [
         GridItem(.flexible(), spacing: 14),
@@ -32,27 +34,43 @@ struct ExploreView: View {
                     }
                     .buttonStyle(ExploreButtonStyle())
 
+//                    NavigationLink {
+//                        EraView()
+//                    } label: {
+//                        ExploreCard(
+//                            title: "By Era",
+//                            subtitle: "Browse historical time periods",
+//                            systemImage: "calendar",
+//                            backgroundColor: Color.lavender
+//                        )
+//                    }
+//                    .buttonStyle(ExploreButtonStyle())
+                    
                     NavigationLink {
-                        EraView()
+                        OccupationView()
                     } label: {
                         ExploreCard(
-                            title: "By Era",
-                            subtitle: "Browse historical time periods",
-                            systemImage: "calendar",
+                            title: "By Occupation",
+                            subtitle:
+                                "Discover artists, scientists, rulers, writers and more",
+                            systemImage: "paintpalette.fill",
                             backgroundColor: Color.lavender
                         )
                     }
                     .buttonStyle(ExploreButtonStyle())
                 }
 
+                
+                
                 NavigationLink {
-                    OccupationView()
+                    HistoryTimelineView(
+                        figures: cachedFigures.map(\.historicalFigure)
+                    )
                 } label: {
                     ExploreWideCard(
-                        title: "By Occupation",
-                        subtitle:
-                            "Discover artists, scientists, rulers, writers and more",
-                        systemImage: "paintpalette.fill",
+                        title: "Explore the timeline",
+                        subtitle: "See historical figures across time",
+                        systemImage: "timeline.selection",
                         backgroundColor: Color.peach
                     )
                 }
