@@ -59,8 +59,6 @@ struct ExploreView: View {
                     }
                     .buttonStyle(ExploreButtonStyle())
                 }
-
-                
                 
                 NavigationLink {
                     HistoryTimelineView(
