@@ -218,7 +218,7 @@ private struct ProfileHero: View {
                 imageName: imageName,
                 imageURL: imageURL
             )
-            .frame(width: 154, height: 154)
+            .frame(minWidth: 0, maxWidth: .infinity)
             .clipShape(
                 RoundedRectangle(cornerRadius: 10)
             )
