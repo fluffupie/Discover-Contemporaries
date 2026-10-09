@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 
+/// Manages the loading, removal, and error state of bookmarked historical figures.
 @MainActor
 final class BookmarkViewModel: ObservableObject {
 
@@ -18,6 +19,7 @@ final class BookmarkViewModel: ObservableObject {
 
     // MARK: - Loading
 
+    /// Loads all bookmarked historical figures from the bookmark service.
     func load() async {
         isLoading = true
         errorMessage = nil
@@ -37,6 +39,9 @@ final class BookmarkViewModel: ObservableObject {
 
     // MARK: - Remove
 
+    /// Removes the specified bookmarked figure from storage and the local list.
+    ///
+    /// - Parameter figure: The bookmarked figure to remove.
     func remove(_ figure: BookmarkedFigure) async {
         errorMessage = nil
 
@@ -56,12 +61,14 @@ final class BookmarkViewModel: ObservableObject {
 
     // MARK: - Refresh
 
+    /// Reloads the current list of bookmarked historical figures.
     func refresh() async {
         await load()
     }
 
     // MARK: - Error State
 
+    /// Clears the current bookmark error message.
     func clearError() {
         errorMessage = nil
     }

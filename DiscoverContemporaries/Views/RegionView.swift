@@ -1,5 +1,13 @@
 import SwiftUI
 
+// MARK: - Region View
+
+/// A view that allows users to explore historical figures by geographical region.
+///
+/// Displays a list of predefined continents, including Africa, Asia, Europe, America, and Oceania.
+///
+/// Users can select a continent to navigate to ``ContinentTopFiguresView``
+/// and discover historical figures associated with that region.
 struct RegionView: View {
 
     private let continents = [
@@ -30,6 +38,7 @@ struct RegionView: View {
             )
         ]
 
+    /// Displays the predefined continents in a navigable list.
     var body: some View {
             List(continents) { continent in
                 NavigationLink {

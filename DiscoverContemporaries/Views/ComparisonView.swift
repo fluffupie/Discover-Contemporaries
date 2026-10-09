@@ -1,9 +1,18 @@
 import SwiftUI
 
+/// A view that presents a side-by-side comparison for two `HistoricalFigure` values.
+///
+/// The comparison includes quick navigation to each profile and a timeline
+/// that highlights life spans and any overlapping years.
+///
+/// - Parameters:
+///   - firstFigure: The primary figure to compare.
+///   - secondFigure: The secondary figure to compare against the primary.
 struct ComparisonView: View {
     let firstFigure: HistoricalFigure
     let secondFigure: HistoricalFigure
 
+    /// The content and behavior of the comparison view.
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 16) {
@@ -48,6 +57,8 @@ struct ComparisonView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    /// Lazily computed timeline data derived from the two figures.
+    /// Returns `nil` when required birth dates are missing.
     private var timelineData: LifespanTimelineData? {
         LifespanTimelineData(
             firstFigure: firstFigure,
@@ -55,12 +66,16 @@ struct ComparisonView: View {
         )
     }
 
+    /// A visual timeline component that renders the life spans of two figures
+    /// on a shared horizontal scale and, when applicable, their overlapping years.
     private struct LifespanTimeline: View {
         let firstFigure: HistoricalFigure
         let secondFigure: HistoricalFigure
        
         let timeline: LifespanTimelineData
 
+        /// The timeline layout including headers, scale, individual bars,
+        /// and the shared overlap indicator.
         var body: some View {
             VStack(alignment: .leading, spacing: 18) {
 
@@ -97,17 +112,20 @@ struct ComparisonView: View {
             )
         }
 
+        /// A compact message shown when the two figures' lifespans do not overlap.
         private var noOverlapView: some View {
             HStack(spacing: 8) {
                 Image(systemName: "calendar.badge.minus")
 
                 Text("Their lifespans did not overlap.")
                     .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.secondaryText)
             }
             .foregroundStyle(Color.secondaryText)
             .padding(.vertical, 8)
         }
 
+        /// A header summarizing the number of years the two figures were alive at the same time.
         private var overlapHeader: some View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(timeline.overlapYears) years")
@@ -120,6 +138,7 @@ struct ComparisonView: View {
             }
         }
 
+        /// A horizontal axis with labeled ticks for the start, middle, and end years.
         private var yearScale: some View {
             VStack(spacing: 4) {
                 HStack {
@@ -144,6 +163,8 @@ struct ComparisonView: View {
             }
         }
 
+        /// Renders a small tick label and marker used by the year scale.
+        /// - Parameter text: The year text to display.
         private func tickLabel(
             _ text: String
         ) -> some View {
@@ -158,6 +179,12 @@ struct ComparisonView: View {
             }
         }
 
+        /// Renders a single figure's lifespan bar on the shared timeline.
+        /// - Parameters:
+        ///   - figure: The figure being rendered.
+        ///   - birthYear: The birth year of the figure.
+        ///   - deathYear: The death year of the figure.
+        ///   - isLiving: Whether the figure is alive (uses "Present").
         private func figureTimeline(
             figure: HistoricalFigure,
             birthYear: Int,
@@ -210,6 +237,7 @@ struct ComparisonView: View {
             }
         }
 
+        /// A highlighted bar that represents the overlapping portion of the two lifespans.
         private var overlapBar: some View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Shared lifetime")
@@ -252,6 +280,11 @@ struct ComparisonView: View {
             }
         }
 
+        /// Computes the x-offset for a year relative to the timeline's start and end.
+        /// - Parameters:
+        ///   - geometryWidth: The available width for the timeline.
+        ///   - year: The year to position.
+        /// - Returns: The leading offset in points.
         private func barOffset(
             geometryWidth: CGFloat,
             year: Int
@@ -268,6 +301,12 @@ struct ComparisonView: View {
             return geometryWidth * progress
         }
 
+        /// Computes the width of a bar representing a time span on the shared scale.
+        /// - Parameters:
+        ///   - geometryWidth: The available width for the timeline.
+        ///   - startYear: The start year of the span.
+        ///   - endYear: The end year of the span.
+        /// - Returns: The width in points for the span.
         private func barWidth(
             geometryWidth: CGFloat,
             startYear: Int,
@@ -391,3 +430,4 @@ struct ComparisonView: View {
         }
     }
 }
+

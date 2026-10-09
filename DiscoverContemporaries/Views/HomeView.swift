@@ -1,13 +1,24 @@
 import SwiftData
 import SwiftUI
 
+// MARK: - Home View
+
+/// The main screen for discovering and searching historical figures.
+///
+/// Provides access to historical figures through:
+/// - Search: Find figures using Wikidata search results.
+/// - Explore: Browse default figures stored in the local SwiftData cache.
+/// - Recently Viewed: Revisit previously explored historical figures.
+
 @MainActor
 struct HomeView: View {
-
+    /// The SwiftData model context used to seed historical figures.
     @Environment(\.modelContext) private var modelContext
-
+    
+    /// The view model responsible for search and homepage content.
     @StateObject private var model: HomeViewModel
 
+    /// Historical figures retrieved from SwiftData, sorted by name.
     @Query(sort: \CachedHistoricalFigure.name)
     private var cachedFigures: [CachedHistoricalFigure]
 
@@ -17,6 +28,11 @@ struct HomeView: View {
         )
     }
 
+    /// When a search query is active, search results replace the
+        /// default exploration and recently viewed sections.
+        ///
+        /// Otherwise, the screen displays cached historical figures
+        /// and a recently viewed section when applicable.
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(
@@ -70,6 +86,11 @@ struct HomeView: View {
 
     // MARK: - Setup
 
+        /// Seeds the local SwiftData cache with default historical figures
+        /// when required.
+        ///
+        /// Uses ``FigureDataSeeder`` to populate the cache and logs
+        /// an error if seeding fails.
     private func setupHome() {
         do {
             try FigureDataSeeder.seedIfNeeded(
@@ -87,6 +108,7 @@ struct HomeView: View {
 
 private struct ExploreFiguresSection: View {
 
+    /// The historical figures displayed in the exploration section.
     let figures: [HistoricalFigure]
 
     var body: some View {
@@ -107,8 +129,12 @@ private struct ExploreFiguresSection: View {
 
 // MARK: - Recently Viewed
 
+/// A section displaying historical figures previously viewed by the user.
+///
+/// Presents figures in a horizontally scrollable collection.
+/// Selecting a figure navigates to its ``ProfileView``.
 private struct RecentlyViewedSection: View {
-
+    /// The historical figures to display in the recently viewed section.
     let figures: [HistoricalFigure]
 
     var body: some View {
@@ -186,6 +212,15 @@ private struct RecentlyViewedCard: View {
 
 // MARK: - Search Results
 
+/// A section displaying search results returned from Wikidata.
+///
+/// Handles four possible states:
+/// - Loading: Displays a progress indicator.
+/// - Error: Displays an error message.
+/// - Empty: Displays an empty search placeholder.
+/// - Success: Displays matching historical figures.
+///
+/// Search results are presented using ``WikidataSearchResultRow``.
 private struct SearchResultsSection: View {
 
     let isLoading: Bool

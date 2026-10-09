@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 
+/// Manages loading and display state for curated historical figures from a continent.
 @MainActor
 final class ContinentTopFiguresViewModel: ObservableObject {
 
@@ -10,6 +11,15 @@ final class ContinentTopFiguresViewModel: ObservableObject {
 
     private var currentContinentID: String?
 
+    /// Loads curated historical figures for the specified continent.
+    ///
+    /// Cached figures are displayed immediately when available. Any missing
+    /// figures are fetched from Wikidata, stored in SwiftData, and then reloaded
+    /// in the original seeded order. Results from outdated requests are ignored.
+    ///
+    /// - Parameters:
+    ///   - continent: The continent whose curated historical figures should be loaded.
+    ///   - repository: The repository used to read and cache historical figures.
     func load(
         for continent: Continent,
         repository: FigureCacheRepository

@@ -2,6 +2,16 @@ import Foundation
 
 @MainActor
 enum ContemporaryService {
+    /// Returns well-known historical figures whose lifespans overlap with the target figure.
+        ///
+        /// The service first uses figures already stored in SwiftData, fetches any
+        /// missing curated figures from Wikidata, and then filters and ranks the
+        /// candidates locally.
+        ///
+        /// - Parameters:
+        ///   - target: The historical figure whose contemporaries should be found.
+        ///   - repository: The repository used to read and cache historical figures.
+        ///   - completion: A closure containing up to 20 matching contemporaries.
 
     static func fetchContemporaries(
         for target: HistoricalFigure,

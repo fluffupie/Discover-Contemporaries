@@ -4,6 +4,14 @@ extension WikidataAPI {
 
     // MARK: - Generic Networking
 
+    /// Fetches and decodes a Wikidata response into the requested decodable type.
+    ///
+    /// The completion handler is called on the main actor.
+    ///
+    /// - Parameters:
+    ///   - url: The URL of the Wikidata request.
+    ///   - type: The response type to decode.
+    ///   - completion: A closure containing the decoded response, or `nil` if the request fails.
     static func fetch<T: Decodable>(
         url: URL,
         as type: T.Type,
@@ -29,7 +37,6 @@ extension WikidataAPI {
                 if let httpResponse =
                     response as? HTTPURLResponse
                 {
-
                     guard
                         (200...299)
                             .contains(
@@ -82,6 +89,10 @@ extension WikidataAPI {
 
     // MARK: - URL Construction
 
+    /// Creates a Wikidata entity-search URL for the supplied query.
+    ///
+    /// - Parameter query: The search text used to find Wikidata entities.
+    /// - Returns: A configured search URL, or `nil` if the URL cannot be created.
     static func makeSearchURL(
         query: String
     ) -> URL? {
@@ -95,36 +106,38 @@ extension WikidataAPI {
                 name: "action",
                 value: "wbsearchentities"
             ),
-
             URLQueryItem(
                 name: "search",
                 value: query
             ),
-
             URLQueryItem(
                 name: "language",
                 value: "en"
             ),
-
             URLQueryItem(
                 name: "format",
                 value: "json"
             ),
-
             URLQueryItem(
                 name: "type",
                 value: "item"
             ),
-
             URLQueryItem(
                 name: "limit",
                 value: "20"
-            ),
+            )
         ]
 
         return components?.url
     }
 
+    /// Creates a Wikidata entity-details URL for the supplied entity IDs and properties.
+    ///
+    /// - Parameters:
+    ///   - ids: The Wikidata entity IDs to request.
+    ///   - properties: The Wikidata properties to include in the response.
+    ///   - languages: An optional language filter for returned labels.
+    /// - Returns: A configured entity URL, or `nil` if the URL cannot be created.
     static func makeEntitiesURL(
         ids: [String],
         properties: String,
@@ -140,24 +153,20 @@ extension WikidataAPI {
                 name: "action",
                 value: "wbgetentities"
             ),
-
             URLQueryItem(
                 name: "ids",
-                value:
-                    ids.joined(
-                        separator: "|"
-                    )
+                value: ids.joined(
+                    separator: "|"
+                )
             ),
-
             URLQueryItem(
                 name: "props",
                 value: properties
             ),
-
             URLQueryItem(
                 name: "format",
                 value: "json"
-            ),
+            )
         ]
 
         if let languages {
@@ -169,12 +178,15 @@ extension WikidataAPI {
             )
         }
 
-        components?.queryItems =
-            queryItems
+        components?.queryItems = queryItems
 
         return components?.url
     }
 
+    /// Creates a URL request with the headers required for Wikidata requests.
+    ///
+    /// - Parameter url: The destination URL for the request.
+    /// - Returns: A configured URL request.
     static func request(
         for url: URL
     ) -> URLRequest {
@@ -183,14 +195,12 @@ extension WikidataAPI {
 
         request.setValue(
             "DiscoverContemporaries/1.0 (student project)",
-            forHTTPHeaderField:
-                "User-Agent"
+            forHTTPHeaderField: "User-Agent"
         )
 
         request.setValue(
             "application/json",
-            forHTTPHeaderField:
-                "Accept"
+            forHTTPHeaderField: "Accept"
         )
 
         return request
@@ -198,6 +208,10 @@ extension WikidataAPI {
 
     // MARK: - Wikimedia Image
 
+    /// Creates a Wikimedia Commons image URL for the specified file name.
+    ///
+    /// - Parameter fileName: The Wikimedia Commons file name.
+    /// - Returns: A URL for a 500-pixel-wide image, or `nil` if the file name cannot be encoded.
     nonisolated static func commonsImageURL(
         for fileName: String
     ) -> URL? {
@@ -219,6 +233,10 @@ extension WikidataAPI {
 
     // MARK: - Date Parsing
 
+    /// Converts a Wikidata time string into a `Date`.
+    ///
+    /// - Parameter time: A Wikidata time value such as `+1452-04-15T00:00:00Z`.
+    /// - Returns: The parsed date, or `nil` if the value cannot be converted.
     static func parseWikidataTime(
         _ time: String
     ) -> Date? {
@@ -232,10 +250,10 @@ extension WikidataAPI {
         guard
             let datePart =
                 trimmed
-                .split(
-                    separator: "T"
-                )
-                .first
+                    .split(
+                        separator: "T"
+                    )
+                    .first
         else {
             return nil
         }
@@ -246,19 +264,16 @@ extension WikidataAPI {
     }
 
     private static let wikidataDateFormatter: DateFormatter = {
-        let formatter =
-            DateFormatter()
+        let formatter = DateFormatter()
 
         formatter.locale =
             Locale(
-                identifier:
-                    "en_US_POSIX"
+                identifier: "en_US_POSIX"
             )
 
         formatter.calendar =
             Calendar(
-                identifier:
-                    .gregorian
+                identifier: .gregorian
             )
 
         formatter.dateFormat =

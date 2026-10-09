@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 
+/// Manages figure search, selection, and resolution for historical figure comparisons.
 @MainActor
 final class ComparisonViewModel: ObservableObject {
 
@@ -21,6 +22,7 @@ final class ComparisonViewModel: ObservableObject {
 
     // MARK: - Search
 
+    /// Debounces changes to the search text before performing a Wikidata search.
     func searchTextChanged() {
         searchTask?.cancel()
 
@@ -49,6 +51,7 @@ final class ComparisonViewModel: ObservableObject {
         }
     }
 
+    /// Searches Wikidata for historical figures matching the current search text.
     func performSearch() {
         let query = searchText
             .trimmingCharacters(
@@ -93,12 +96,20 @@ final class ComparisonViewModel: ObservableObject {
 
     // MARK: - Resolve Figure
 
+    /// Resolves a search result into a complete historical figure for comparison.
+    ///
+    /// The method first checks the SwiftData cache and fetches missing details
+    /// from Wikidata when necessary.
+    ///
+    /// - Parameters:
+    ///   - result: The Wikidata search result to resolve.
+    ///   - repository: The repository used to read and cache historical figures.
+    ///   - completion: A closure containing the resolved historical figure, or `nil` if resolution fails.
     func resolveFigure(
         from result: WikidataSearchResult,
         repository: FigureCacheRepository,
         completion: @escaping (HistoricalFigure?) -> Void
     ) {
-        // First try SwiftData.
         if let cachedFigure = try? repository.fetchFigure(
             withID: result.id
         ) {
@@ -106,7 +117,6 @@ final class ComparisonViewModel: ObservableObject {
             return
         }
 
-        // Otherwise fetch full details.
         WikidataAPI.fetchDetails(
             forID: result.id
         ) { details in

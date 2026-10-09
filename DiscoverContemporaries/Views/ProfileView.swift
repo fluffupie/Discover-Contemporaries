@@ -1,11 +1,28 @@
 import SwiftData
 import SwiftUI
 
-struct ProfileView: View {
+// MARK: - Profile View
 
+/// A view that displays detailed information about a historical figure.
+///
+/// Presents the figure's portrait, name, historical background,
+/// lifespan, birthplace, and associated movements.
+///
+/// Users can:
+/// - View the figure's historical information.
+/// - Save or remove the figure from bookmarks.
+/// - Discover contemporaries of the selected figure.
+/// - Navigate to a comparison with another historical figure.
+///
+/// The view uses ``ProfileViewModel`` to manage figure data,
+/// bookmark state, and feedback messages.
+struct ProfileView: View {
+    
+    /// The SwiftData model context used to load and cache figure information.
     @Environment(\.modelContext)
     private var modelContext
 
+    /// The view model responsible for profile content and bookmark state.
     @StateObject
     private var model: ProfileViewModel
 
@@ -288,7 +305,10 @@ private struct ProfileSection<Content: View>: View {
 }
 
 // MARK: - Fact Row
-
+/// A reusable row displaying a labelled historical fact.
+///
+/// Used in the profile's details section to display information
+/// such as lifespan, age, birthplace, and historical movement.
 private struct FactRow: View {
     let icon: String
     let label: String
@@ -337,8 +357,15 @@ private struct FactRow: View {
 }
 
 // MARK: - Toast Banner
-
+/// A temporary notification banner used to display bookmark feedback.
+///
+/// Displays a message inside a dark capsule-shaped background.
+///
+/// The banner is presented by ``ProfileView`` when the view model
+/// provides a bookmark message, and is cleared after a short delay.
 private struct ToastBanner: View {
+    
+    /// The feedback message displayed in the banner.
     let message: String
 
     var body: some View {

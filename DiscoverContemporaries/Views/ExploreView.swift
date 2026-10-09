@@ -2,9 +2,11 @@ import SwiftUI
 import SwiftData
 
 struct ExploreView: View {
+    /// Historical figures retrieved from the local SwiftData cache
     @Query(sort: \CachedHistoricalFigure.name)
     private var cachedFigures: [CachedHistoricalFigure]
     
+    /// The two-column grid layout used for exploration cards.
     private let columns = [
         GridItem(.flexible(), spacing: 14),
         GridItem(.flexible(), spacing: 14),
@@ -33,18 +35,6 @@ struct ExploreView: View {
                         )
                     }
                     .buttonStyle(ExploreButtonStyle())
-
-//                    NavigationLink {
-//                        EraView()
-//                    } label: {
-//                        ExploreCard(
-//                            title: "By Era",
-//                            subtitle: "Browse historical time periods",
-//                            systemImage: "calendar",
-//                            backgroundColor: Color.lavender
-//                        )
-//                    }
-//                    .buttonStyle(ExploreButtonStyle())
                     
                     NavigationLink {
                         OccupationView()

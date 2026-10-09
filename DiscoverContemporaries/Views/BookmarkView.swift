@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// Displays the user's bookmarked historical figures and supports removing saved entries.
 struct BookmarkView: View {
     @StateObject private var model = BookmarkViewModel()
 

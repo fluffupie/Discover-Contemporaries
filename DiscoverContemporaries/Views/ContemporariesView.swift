@@ -1,13 +1,17 @@
 import SwiftUI
 import Combine
 import Foundation
+import SwiftData
 
 struct ContemporariesView: View {
+    /// The SwiftData model context used to initialise the cache repository.
     @Environment(\.modelContext)
     private var modelContext
     
+    /// The historical figure whose contemporaries are being displayed.
     let figure: HistoricalFigure
 
+    /// The view model responsible for loading and managing contemporaries.
     @StateObject private var model = ContemporariesViewModel()
 
     var body: some View {
@@ -48,8 +52,9 @@ struct ContemporariesView: View {
     private var contemporariesList: some View {
         List(model.figures) { contemporary in
             NavigationLink {
-                ProfileView(
-                    figure: contemporary.historicalFigure
+                ComparisonView(
+                    firstFigure: figure,
+                    secondFigure: contemporary.historicalFigure
                 )
             } label: {
                 FigureList(

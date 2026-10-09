@@ -9,8 +9,14 @@ import SwiftUI
 
 struct HistoryTimelineView: View {
 
+    /// The view model responsible for timeline layout, selection, and zooming.
     @StateObject private var model: TimelineViewModel
 
+    /// Creates a historical timeline using the provided figures.
+        ///
+        /// - Parameters:
+        ///   - figures: The historical figures to display on the timeline.
+        ///   - highlightedID: An optional identifier of a figure to highlight.
     init(
         figures: [HistoricalFigure],
         highlightedID: String? = nil
@@ -148,10 +154,10 @@ private struct TimelineBar: View {
     }
 }
 
-// Footer
-
+/// A footer containing the selected figure's details and timeline zoom controls.
 private struct TimelineFooter: View {
 
+    /// The observed view model providing selection and zoom state.
     @ObservedObject var model: TimelineViewModel
     let availableWidth: CGFloat
 
@@ -270,11 +276,14 @@ private struct EmptyTimelineView: View {
 }
 
 #Preview {
+    /// - Parameter year: The year used to construct the date.
+       /// - Returns: A date representing January 1 of the specified year.
     func date(_ year: Int) -> Date {
         Calendar(identifier: .gregorian)
             .date(from: DateComponents(year: year, month: 1, day: 1))!
     }
 
+    /// Creates a sample historical figure for the timeline preview.
     func figure(
         _ id: String,
         _ name: String,

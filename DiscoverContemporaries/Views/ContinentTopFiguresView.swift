@@ -2,10 +2,13 @@ import SwiftUI
 import SwiftData
 
 struct ContinentTopFiguresView: View {
+    /// The continent whose historical figures are being displayed.
     let continent: Continent
 
+    /// The view model responsible for loading and managing historical figures.
     @StateObject private var model = ContinentTopFiguresViewModel()
 
+    /// The SwiftData model context used to initialise the cache repository.
     @Environment(\.modelContext)
     private var modelContext
 

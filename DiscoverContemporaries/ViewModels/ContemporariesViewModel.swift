@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 
+/// Manages loading and display state for a historical figure's contemporaries.
 @MainActor
 final class ContemporariesViewModel: ObservableObject {
 
@@ -10,6 +11,14 @@ final class ContemporariesViewModel: ObservableObject {
 
     private var currentFigureID: String?
 
+    /// Loads contemporaries for the specified historical figure.
+    ///
+    /// Results are retrieved through `ContemporaryService` using the supplied
+    /// figure cache repository. Results from outdated requests are ignored.
+    ///
+    /// - Parameters:
+    ///   - figure: The historical figure whose contemporaries should be loaded.
+    ///   - repository: The repository used to access cached historical figures.
     func load(
         for figure: HistoricalFigure,
         repository: FigureCacheRepository

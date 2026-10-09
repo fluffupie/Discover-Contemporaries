@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// Displays a historical figure in a compact list row with a portrait, name, and optional subtitle.
 struct FigureList: View {
     let name: String
     let subtitle: String?

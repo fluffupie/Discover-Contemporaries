@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// Displays a historical figure as a portrait card with their name and birthplace.
 struct FigureCard: View {
     let figure: HistoricalFigure
 
@@ -31,7 +32,9 @@ struct FigureCard: View {
             .padding(.vertical, 9)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(figure.name). \(figure.birthPlace ?? "Unknown birth place").")
+        .accessibilityLabel(
+            "\(figure.name). \(figure.birthPlace ?? "Unknown birth place")."
+        )
         .background(
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.white)
@@ -40,7 +43,13 @@ struct FigureCard: View {
             RoundedRectangle(cornerRadius: 10)
                 .stroke(Color.white.opacity(0.6), lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
+        .clipShape(
+            RoundedRectangle(cornerRadius: 10)
+        )
+        .shadow(
+            color: .black.opacity(0.08),
+            radius: 8,
+            y: 4
+        )
     }
 }

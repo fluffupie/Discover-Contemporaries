@@ -13,7 +13,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0101326D304563D1006A2CF1 /* a1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = a1.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0101326D304563D1006A2CF1 /* DiscoverContemporaries.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiscoverContemporaries.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		014313A2304A7E590040D533 /* a1.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = a1.xcodeproj; path = a1/a1.xcodeproj; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -51,7 +51,7 @@
 		0101326E304563D1006A2CF1 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0101326D304563D1006A2CF1 /* a1.app */,
+				0101326D304563D1006A2CF1 /* DiscoverContemporaries.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -73,9 +73,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		0101326C304563D1006A2CF1 /* a1 */ = {
+		0101326C304563D1006A2CF1 /* DiscoverContemporaries */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 01013278304563D3006A2CF1 /* Build configuration list for PBXNativeTarget "a1" */;
+			buildConfigurationList = 01013278304563D3006A2CF1 /* Build configuration list for PBXNativeTarget "DiscoverContemporaries" */;
 			buildPhases = (
 				01013269304563D1006A2CF1 /* Sources */,
 				0101326A304563D1006A2CF1 /* Frameworks */,
@@ -88,14 +88,14 @@
 			fileSystemSynchronizedGroups = (
 				0101326F304563D1006A2CF1 /* DiscoverContemporaries */,
 			);
-			name = a1;
+			name = DiscoverContemporaries;
 			packageProductDependencies = (
 				0184AC7F3068E73800AC7D20 /* FirebaseCore */,
 				0184AD193068FE9500AC7D20 /* FirebaseFirestore */,
 				38993C2A3073D8AA00A60753 /* FirebaseAuth */,
 			);
 			productName = a1;
-			productReference = 0101326D304563D1006A2CF1 /* a1.app */;
+			productReference = 0101326D304563D1006A2CF1 /* DiscoverContemporaries.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -113,7 +113,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 01013268304563D1006A2CF1 /* Build configuration list for PBXProject "a1" */;
+			buildConfigurationList = 01013268304563D1006A2CF1 /* Build configuration list for PBXProject "DiscoverContemporaries" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -136,7 +136,7 @@
 			);
 			projectRoot = "";
 			targets = (
-				0101326C304563D1006A2CF1 /* a1 */,
+				0101326C304563D1006A2CF1 /* DiscoverContemporaries */,
 			);
 		};
 /* End PBXProject section */
@@ -350,7 +350,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		01013268304563D1006A2CF1 /* Build configuration list for PBXProject "a1" */ = {
+		01013268304563D1006A2CF1 /* Build configuration list for PBXProject "DiscoverContemporaries" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				01013276304563D3006A2CF1 /* Debug */,
@@ -359,7 +359,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		01013278304563D3006A2CF1 /* Build configuration list for PBXNativeTarget "a1" */ = {
+		01013278304563D3006A2CF1 /* Build configuration list for PBXNativeTarget "DiscoverContemporaries" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				01013279304563D3006A2CF1 /* Debug */,

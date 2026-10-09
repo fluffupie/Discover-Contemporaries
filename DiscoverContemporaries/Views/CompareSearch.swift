@@ -1,7 +1,10 @@
 import SwiftData
 import SwiftUI
 
+/// Displays a searchable list of historical figures that can be selected for comparison.
 struct CompareSearchView: View {
+
+    /// The historical figure that will be compared with the selected search result.
     let firstFigure: HistoricalFigure
 
     @Environment(\.modelContext)

@@ -1,6 +1,9 @@
 import SwiftUI
 
+/// Displays a reusable search field bound to search text.
 struct SearchField: View {
+
+    /// The text entered into the search field.
     @Binding var searchText: String
 
     var body: some View {
@@ -31,10 +34,15 @@ struct SearchField: View {
         .padding(.horizontal, 12)
         .frame(height: 36)
         .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(
+            RoundedRectangle(cornerRadius: 12)
+        )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.black.opacity(0.06), lineWidth: 1)
+                .stroke(
+                    Color.black.opacity(0.06),
+                    lineWidth: 1
+                )
         )
     }
 }

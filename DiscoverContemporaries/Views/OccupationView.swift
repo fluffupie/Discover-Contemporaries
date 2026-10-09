@@ -2,14 +2,21 @@ import Combine
 import SwiftData
 import SwiftUI
 
+// MARK: - Occupation View
+
+/// A view that allows users to explore historical figures by occupation.
+///
+/// Displays a list of predefined occupation categories.
 struct OccupationView: View {
 
+    /// Represents an occupation category available for exploration.
     struct Occupation: Identifiable {
-        let id: String
+        let id: String /// The unique Wikidata identifier of the occupation.
         let name: String
-        let systemImage: String
+        let systemImage: String /// The SF Symbol representing the occupation.
     }
 
+    /// The predefined occupation categories available for browsing.
     private let occupations: [Occupation] = [
         Occupation(
             id: "Q82955",
@@ -71,13 +78,30 @@ struct OccupationView: View {
 
 // MARK: - Occupation Top Figures
 
+/// A view that displays historical figures associated with a selected occupation.
+///
+/// Loads predefined figures through ``OccupationTopFiguresViewModel``
+/// and presents the results in a navigable list.
+///
+/// Users can select a figure to open their ``ProfileView``.
+///
+/// The view handles four states:
+/// - Loading: Displays a progress indicator when no cached figures are available.
+/// - Error: Displays an error message when loading produces no figures.
+/// - Empty: Indicates that no figures were found.
+/// - Success: Displays the available historical figures.
+///
+/// Cached figures remain visible while missing figures are being fetched.
 private struct OccupationTopFiguresView: View {
 
+    /// The occupation whose historical figures are being displayed.
     let occupation: OccupationView.Occupation
 
+    /// The SwiftData model context used to initialise the cache repository.
     @Environment(\.modelContext)
     private var modelContext
 
+    /// The view model responsible for loading and managing occupation figures.
     @StateObject
     private var model = OccupationTopFiguresViewModel()
 

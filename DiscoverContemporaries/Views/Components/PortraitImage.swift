@@ -1,10 +1,21 @@
 import SwiftUI
 
+/// Displays a historical figure portrait using a local image, remote URL, or fallback placeholder.
 struct PortraitImage: View {
     let imageName: String?
     let imageURL: URL?
 
-    init(imageName: String? = nil, imageURL: URL? = nil) {
+    /// Creates a portrait image with optional local and remote image sources.
+    ///
+    /// A valid local image is preferred over the remote image URL.
+    ///
+    /// - Parameters:
+    ///   - imageName: The name of a local image asset.
+    ///   - imageURL: The remote image URL used when no valid local image is available.
+    init(
+        imageName: String? = nil,
+        imageURL: URL? = nil
+    ) {
         self.imageName = imageName
         self.imageURL = imageURL
     }
@@ -32,13 +43,17 @@ struct PortraitImage: View {
         return UIImage(named: imageName) != nil
     }
 
-    private func localImage(named name: String) -> some View {
+    private func localImage(
+        named name: String
+    ) -> some View {
         Image(name)
             .resizable()
             .scaledToFill()
     }
 
-    private func remoteImage(from url: URL) -> some View {
+    private func remoteImage(
+        from url: URL
+    ) -> some View {
         AsyncImage(url: url) { phase in
             switch phase {
             case .empty:
@@ -77,5 +92,4 @@ struct PortraitImage: View {
                 .foregroundStyle(.secondary)
         }
     }
-
 }

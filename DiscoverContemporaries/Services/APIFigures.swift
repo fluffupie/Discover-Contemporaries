@@ -3,7 +3,13 @@ import Foundation
 extension WikidataAPI {
 
     // MARK: - Figure Batch Fetch
-
+    /// Fetches historical figures matching the supplied Wikidata entity IDs.
+        ///
+        /// The returned figures preserve the order of the supplied IDs.
+        ///
+        /// - Parameters:
+        ///   - ids: The Wikidata entity IDs to fetch.
+        ///   - completion: A closure containing the fetched historical figures.
     static func fetchFigures(
         withIDs ids: [String],
         completion: @escaping ([HistoricalFigure]) -> Void
@@ -62,6 +68,12 @@ extension WikidataAPI {
         }
     }
     
+    /// Fetches a large collection of historical figures in smaller batches.
+        ///
+        /// - Parameters:
+        ///   - ids: The Wikidata entity IDs to fetch.
+        ///   - batchSize: The maximum number of IDs requested in each batch.
+        ///   - completion: A closure containing all figures collected from the batches.
     static func fetchFiguresInBatches(
         withIDs ids: [String],
         batchSize: Int = 50,
@@ -121,7 +133,11 @@ extension WikidataAPI {
     }
 
     // MARK: - Figure Details
-
+    /// Fetches additional Wikidata details for the specified historical figure.
+       ///
+       /// - Parameters:
+       ///   - id: The Wikidata entity ID of the figure.
+       ///   - completion: A closure containing the figure details, or `nil` if they cannot be retrieved.
     static func fetchDetails(
         forID id: String,
         completion: @escaping (WikidataFigureDetails?) -> Void
@@ -158,7 +174,11 @@ extension WikidataAPI {
     }
 
     // MARK: - Birth Place
-
+    /// Fetches the English name of a historical figure's birthplace.
+       ///
+       /// - Parameters:
+       ///   - id: The Wikidata entity ID of the historical figure.
+       ///   - completion: A closure containing the birthplace name, or `nil` if unavailable.
     static func fetchBirthPlaceName(
         forFigureID id: String,
         completion: @escaping (String?) -> Void
@@ -180,7 +200,11 @@ extension WikidataAPI {
     }
 
     // MARK: - Citizenship
-
+    /// Fetches the English name of a historical figure's citizenship.
+       ///
+       /// - Parameters:
+       ///   - id: The Wikidata entity ID of the historical figure.
+       ///   - completion: A closure containing the citizenship name, or `nil` if unavailable.
     static func fetchCitizenshipName(
         forFigureID id: String,
         completion: @escaping (String?) -> Void
@@ -202,7 +226,11 @@ extension WikidataAPI {
     }
 
     // MARK: - Entity Label
-
+    /// Fetches the English label for the specified Wikidata entity.
+        ///
+        /// - Parameters:
+        ///   - id: The Wikidata entity ID whose label should be retrieved.
+        ///   - completion: A closure containing the English label, or `nil` if unavailable.
     static func fetchEntityLabel(
         forID id: String,
         completion: @escaping (String?) -> Void

@@ -9,10 +9,12 @@ struct WikidataFigureDetails {
     let citizenshipID: String?
 }
 
+/// Represents the decoded entity response returned by Wikidata.
 struct WikidataEntitiesResponse: Decodable {
     let entities: [String: WikidataEntity]
 }
 
+/// Represents a Wikidata entity and its claims, labels, and descriptions.
 struct WikidataEntity: Decodable {
     let claims: [String: [WikidataClaim]]?
     let labels: [String: WikidataLabel]?
@@ -106,18 +108,22 @@ struct WikidataEntity: Decodable {
     }
 }
 
+/// Represents a localized Wikidata label value.
 struct WikidataLabel: Decodable {
     let value: String
 }
 
+/// Represents a single Wikidata claim.
 struct WikidataClaim: Decodable {
     let mainsnak: WikidataMainSnak
 }
 
+/// Represents the main statement value of a Wikidata claim.
 struct WikidataMainSnak: Decodable {
     let datavalue: WikidataDataValue?
 }
 
+/// Decodes a Wikidata data value that may contain either structured or string data.
 struct WikidataDataValue: Decodable {
     let value: WikidataEntityValue?
     let stringValue: String?
@@ -143,6 +149,7 @@ struct WikidataDataValue: Decodable {
     }
 }
 
+/// Represents structured entity data contained within a Wikidata claim value.
 struct WikidataEntityValue: Decodable {
     let id: String?
     let time: String?

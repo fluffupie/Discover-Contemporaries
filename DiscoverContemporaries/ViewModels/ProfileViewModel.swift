@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import SwiftData
 
+/// Manages profile display data, cache enrichment, and bookmark state for a historical figure.
 @MainActor
 final class ProfileViewModel: ObservableObject {
 
@@ -76,6 +77,10 @@ final class ProfileViewModel: ObservableObject {
         cachedImageURL ?? figure.imageURL
     }
 
+    /// Returns the most complete version of the current historical figure.
+    ///
+    /// Cached values are preferred when available so newly loaded profile
+    /// details can be used throughout the profile and bookmark flows.
     var resolvedFigure: HistoricalFigure {
         HistoricalFigure(
             id: figure.id,
@@ -94,6 +99,9 @@ final class ProfileViewModel: ObservableObject {
 
     // MARK: - Loading
 
+    /// Loads profile data using a repository created from the supplied SwiftData context.
+    ///
+    /// - Parameter context: The SwiftData model context used to access cached figures.
     func load(context: ModelContext) {
         let repository = FigureCacheRepository(
             context: context
@@ -102,6 +110,9 @@ final class ProfileViewModel: ObservableObject {
         load(repository: repository)
     }
 
+    /// Loads cached profile data and fetches missing details from Wikidata when needed.
+    ///
+    /// - Parameter repository: The repository used to read and persist historical figure data.
     func load(
         repository: FigureCacheRepository
     ) {
@@ -197,6 +208,7 @@ final class ProfileViewModel: ObservableObject {
 
     // MARK: - Bookmark
 
+    /// Loads whether the current historical figure is saved as a bookmark.
     func loadBookmarkState() async {
         do {
             isBookmarked = try await BookmarkService
@@ -207,6 +219,10 @@ final class ProfileViewModel: ObservableObject {
         }
     }
 
+    /// Saves or removes the current historical figure based on its bookmark state.
+    ///
+    /// The resolved figure is saved so any cached profile details are included
+    /// in the bookmark.
     func toggleBookmark() async {
         bookmarkMessage = nil
 
@@ -231,6 +247,7 @@ final class ProfileViewModel: ObservableObject {
         }
     }
 
+    /// Clears the current bookmark status message.
     func clearBookmarkMessage() {
         bookmarkMessage = nil
     }

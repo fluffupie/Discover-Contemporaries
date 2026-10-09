@@ -4,6 +4,13 @@ extension WikidataAPI {
 
     // MARK: - Figure Search
 
+    /// Searches Wikidata for historical figures matching the supplied query.
+        ///
+        /// Only results identified as human entities are returned.
+        ///
+        /// - Parameters:
+        ///   - query: The search text used to find historical figures.
+        ///   - completion: A closure containing the matching Wikidata search results.
     static func fetchFigures(
         query: String,
         completion: @escaping ([WikidataSearchResult]) -> Void

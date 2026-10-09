@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 
+/// Manages homepage figure selection, recent history, and figure search.
 @MainActor
 final class HomeViewModel: ObservableObject {
 
@@ -16,12 +17,19 @@ final class HomeViewModel: ObservableObject {
         "Q9682"  // Elizabeth II
     ]
 
+    /// Indicates whether the current search text contains a non-empty query.
     var hasSearchQuery: Bool {
         !trimmedSearchText.isEmpty
     }
 
     // MARK: - Homepage Figures
 
+    /// Returns the default homepage figures from the local SwiftData cache.
+    ///
+    /// Figures are returned in the predefined homepage order.
+    ///
+    /// - Parameter cachedFigures: The historical figures currently stored in the local cache.
+    /// - Returns: The cached default historical figures.
     func defaultFigures(
         from cachedFigures: [CachedHistoricalFigure]
     ) -> [HistoricalFigure] {
@@ -36,6 +44,13 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
+    /// Returns up to five recently viewed historical figures.
+    ///
+    /// Default homepage figures are excluded, and the remaining figures are
+    /// ordered from most recently viewed to least recently viewed.
+    ///
+    /// - Parameter cachedFigures: The historical figures currently stored in the local cache.
+    /// - Returns: Up to five recently viewed historical figures.
     func recentlyViewedFigures(
         from cachedFigures: [CachedHistoricalFigure]
     ) -> [HistoricalFigure] {
@@ -54,6 +69,10 @@ final class HomeViewModel: ObservableObject {
 
     // MARK: - Search
 
+    /// Searches Wikidata for historical figures matching the current search text.
+    ///
+    /// Results from outdated requests are ignored if the search text changes
+    /// before the request completes.
     func searchFigures() {
         let query = trimmedSearchText
 
@@ -81,6 +100,8 @@ final class HomeViewModel: ObservableObject {
                 : nil
         }
     }
+
+    /// Clears the current search text, results, loading state, and error message.
     func clearSearch() {
         searchText = ""
         searchResults = []
@@ -91,6 +112,8 @@ final class HomeViewModel: ObservableObject {
     // MARK: - Helpers
 
     private var trimmedSearchText: String {
-        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        searchText.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
     }
 }
