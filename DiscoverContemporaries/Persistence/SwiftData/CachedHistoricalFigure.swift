@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+/// Stores a historical figure in the local SwiftData cache.
 @Model
 final class CachedHistoricalFigure {
 
@@ -56,7 +57,8 @@ final class CachedHistoricalFigure {
 // MARK: - Historical Figure Conversion
 
 extension CachedHistoricalFigure {
-
+    
+    /// Creates a cached historical figure from a domain model.
     convenience init(from figure: HistoricalFigure) {
         self.init(
             wikidataID: figure.id,
@@ -72,7 +74,8 @@ extension CachedHistoricalFigure {
             movements: figure.movements
         )
     }
-
+    
+    /// Converts the cached model into a historical figure.
     var historicalFigure: HistoricalFigure {
         HistoricalFigure(
             id: wikidataID,
@@ -94,6 +97,7 @@ extension CachedHistoricalFigure {
 
 extension CachedHistoricalFigure {
 
+    /// Updates the cached values using the latest historical figure data.
     func update(from figure: HistoricalFigure) {
         name = figure.name
         descriptionText = figure.descriptionText
@@ -108,6 +112,7 @@ extension CachedHistoricalFigure {
         cachedAt = Date()
     }
 
+    /// Records the current time as the figure's most recent view date.
     func markAsViewed() {
         lastViewedAt = Date()
     }

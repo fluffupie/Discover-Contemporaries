@@ -1,9 +1,12 @@
 import Foundation
 import SwiftData
 
+/// Seeds the SwiftData cache with bundled historical figure data when the cache is empty.
 @MainActor
 enum FigureDataSeeder {
 
+    // TODO: seedIfNeeded currently checks hasAnyFigures(), so if any cached figure already exists, it skips all bundled seeding.
+    /// Loads bundled seed data into SwiftData when no cached figures exist.
     static func seedIfNeeded(
         context: ModelContext
     ) throws {
@@ -25,7 +28,6 @@ enum FigureDataSeeder {
     }
 
     // MARK: - Loading
-
     private static func loadSeedData() throws -> FigureSeedData {
         guard let url = Bundle.main.url(
             forResource: "FiguresData",
@@ -121,13 +123,36 @@ enum FigureDataSeeder {
 }
 
 // MARK: - Occupation Figure Seeds
-
+/// Provides curated Wikidata figure IDs for each supported occupation.
 enum OccupationFigureSeeds {
-
+    
+    /// Returns the seeded Wikidata figure IDs for the specified occupation.
     static func ids(
         for occupationID: String
     ) -> [String] {
         figureIDs[occupationID] ?? []
+    }
+    
+    static var allIDs: [String] {
+        uniqueIDs(
+            politicians +
+            scientists +
+            artists +
+            musicians +
+            actors +
+            singers +
+            monarchs
+        )
+    }
+
+    private static func uniqueIDs(
+        _ ids: [String]
+    ) -> [String] {
+        var seen = Set<String>()
+
+        return ids.filter {
+            seen.insert($0).inserted
+        }
     }
 
     private static let figureIDs: [String: [String]] = [

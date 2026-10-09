@@ -18,7 +18,7 @@ final class ContinentTopFiguresViewModel: ObservableObject {
         currentContinentID = continentID
         errorMessage = nil
 
-        let seededIDs = ContinentFigureSeeds.ids(
+        let seededIDs = ContinentFigureIDs.ids(
             for: continentID
         )
 

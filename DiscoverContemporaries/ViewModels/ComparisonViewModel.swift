@@ -4,11 +4,18 @@ import Foundation
 @MainActor
 final class ComparisonViewModel: ObservableObject {
 
+    // MARK: - Search State
+
     @Published var searchText = ""
 
-    @Published private(set) var isLoading = false
-    @Published private(set) var errorMessage: String?
-    @Published private(set) var results: [WikidataSearchResult] = []
+    @Published private(set)
+    var results: [WikidataSearchResult] = []
+
+    @Published private(set)
+    var isLoading = false
+
+    @Published private(set)
+    var errorMessage: String?
 
     private var searchTask: Task<Void, Never>?
 
@@ -17,12 +24,19 @@ final class ComparisonViewModel: ObservableObject {
     func searchTextChanged() {
         searchTask?.cancel()
 
-        guard !trimmedSearchText.isEmpty else {
-            clearResults()
+        let query = searchText
+            .trimmingCharacters(
+                in: .whitespacesAndNewlines
+            )
+
+        guard !query.isEmpty else {
+            results = []
+            errorMessage = nil
+            isLoading = false
             return
         }
 
-        searchTask = Task { @MainActor in
+        searchTask = Task {
             try? await Task.sleep(
                 for: .milliseconds(400)
             )
@@ -36,10 +50,15 @@ final class ComparisonViewModel: ObservableObject {
     }
 
     func performSearch() {
-        let query = trimmedSearchText
+        let query = searchText
+            .trimmingCharacters(
+                in: .whitespacesAndNewlines
+            )
 
         guard !query.isEmpty else {
-            clearResults()
+            results = []
+            errorMessage = nil
+            isLoading = false
             return
         }
 
@@ -48,107 +67,78 @@ final class ComparisonViewModel: ObservableObject {
 
         WikidataAPI.fetchFigures(
             query: query
-        ) { [weak self] newResults in
+        ) { [weak self] results in
             guard let self else {
                 return
             }
 
-            guard query == trimmedSearchText else {
+            let currentQuery = self.searchText
+                .trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                )
+
+            guard currentQuery == query else {
                 return
             }
 
-            results = newResults
-            isLoading = false
-            errorMessage = newResults.isEmpty
-                ? "No figures found."
-                : nil
-        }
-    }
+            self.results = results
+            self.isLoading = false
 
-    func clearSearch() {
-        searchText = ""
-        clearResults()
-    }
-
-    // MARK: - Figure Selection
-
-    func resolveFigure(
-        from result: WikidataSearchResult,
-        repository: FigureCacheRepository
-    ) async -> HistoricalFigure? {
-
-        if let cachedFigure = try? repository.fetchFigure(
-            withID: result.id
-        ) {
-            return cachedFigure
-        }
-
-        guard let figure = await fetchFigureDetails(
-            from: result
-        ) else {
-            errorMessage = "Unable to load figure details."
-            return nil
-        }
-
-        do {
-            try repository.save(figure)
-        } catch {
-            print(
-                "Failed to cache comparison figure \(figure.id): \(error)"
-            )
-        }
-
-        return figure
-    }
-
-    // MARK: - Helpers
-
-    private func fetchFigureDetails(
-        from result: WikidataSearchResult
-    ) async -> HistoricalFigure? {
-        await withCheckedContinuation { continuation in
-            WikidataAPI.fetchDetails(
-                forID: result.id
-            ) { details in
-
-                guard let details else {
-                    continuation.resume(
-                        returning: nil
-                    )
-                    return
-                }
-
-                let figure = HistoricalFigure(
-                    id: result.id,
-                    name: result.label,
-                    descriptionText: result.description,
-                    gender: nil,
-                    birthPlace: nil,
-                    birthDate: details.birthDate,
-                    deathDate: details.deathDate,
-                    occupations: [],
-                    movements: [],
-                    imageURL: details.portraitURL
-                        ?? result.imageURL,
-                    imageName: nil
-                )
-
-                continuation.resume(
-                    returning: figure
-                )
+            if results.isEmpty {
+                self.errorMessage =
+                    "No figures found."
             }
         }
     }
 
-    private var trimmedSearchText: String {
-        searchText.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
-    }
+    // MARK: - Resolve Figure
 
-    private func clearResults() {
-        results = []
-        errorMessage = nil
-        isLoading = false
+    func resolveFigure(
+        from result: WikidataSearchResult,
+        repository: FigureCacheRepository,
+        completion: @escaping (HistoricalFigure?) -> Void
+    ) {
+        // First try SwiftData.
+        if let cachedFigure = try? repository.fetchFigure(
+            withID: result.id
+        ) {
+            completion(cachedFigure)
+            return
+        }
+
+        // Otherwise fetch full details.
+        WikidataAPI.fetchDetails(
+            forID: result.id
+        ) { details in
+            guard let details else {
+                completion(nil)
+                return
+            }
+
+            let figure = HistoricalFigure(
+                id: result.id,
+                name: result.label,
+                descriptionText: result.description,
+                gender: nil,
+                birthPlace: nil,
+                birthDate: details.birthDate,
+                deathDate: details.deathDate,
+                occupations: [],
+                movements: [],
+                imageURL: details.portraitURL
+                    ?? result.imageURL,
+                imageName: nil
+            )
+
+            do {
+                try repository.save(figure)
+            } catch {
+                print(
+                    "Failed to cache comparison figure: \(error)"
+                )
+            }
+
+            completion(figure)
+        }
     }
 }

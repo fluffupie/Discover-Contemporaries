@@ -1,11 +1,33 @@
 import Foundation
 
-enum ContinentFigureSeeds {
+/// Provides curated Wikidata figure IDs for each supported continent.
+enum ContinentFigureIDs {
 
+    /// Returns the seeded Wikidata figure IDs for the specified continent.
     static func ids(
         for continentID: String
     ) -> [String] {
         figureIDs[continentID] ?? []
+    }
+    
+    static var allIDs: [String] {
+        uniqueIDs(
+            africa +
+            asia +
+            europe +
+            americas +
+            oceania
+        )
+    }
+
+    private static func uniqueIDs(
+        _ ids: [String]
+    ) -> [String] {
+        var seen = Set<String>()
+
+        return ids.filter {
+            seen.insert($0).inserted
+        }
     }
 
     // MARK: - Continent Lookup
@@ -141,11 +163,5 @@ enum ContinentFigureSeeds {
         "Q313876",   // Donald Bradman
         "Q215190",   // Ned Kelly
         "Q117311"    // David Unaipon
-    ]
-
-    // MARK: - Antarctica
-
-    private static let antarctica: [String] = [
-        // Likely fewer than 20
     ]
 }

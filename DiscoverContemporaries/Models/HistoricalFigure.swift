@@ -1,5 +1,6 @@
 import Foundation
 
+/// Model for historical figures
 struct HistoricalFigure: Decodable, Identifiable, Hashable {
     let id: String  // Wikidata ID, e.g. "Q517"
     let name: String
@@ -106,7 +107,6 @@ struct HistoricalFigure: Decodable, Identifiable, Hashable {
     }
 
     // MARK: - Search
-
         func matches(_ query: String) -> Bool {
             searchText.localizedCaseInsensitiveContains(query)
         }
@@ -125,7 +125,6 @@ struct HistoricalFigure: Decodable, Identifiable, Hashable {
         }
 
     // MARK: - Formatting
-
         private static let displayDateFormatter: DateFormatter = {
             let formatter = DateFormatter()
             formatter.locale = Locale(identifier: "en_AU_POSIX")

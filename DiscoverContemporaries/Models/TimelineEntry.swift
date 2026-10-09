@@ -7,6 +7,8 @@
 
 import Foundation
 
+
+/// Model for timeline
 struct  TimelineEntry: Identifiable {
     let figure: HistoricalFigure
     let startYear: Int

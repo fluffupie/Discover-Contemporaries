@@ -4,10 +4,14 @@ import SwiftUI
 struct CompareSearchView: View {
     let firstFigure: HistoricalFigure
 
-    @Environment(\.modelContext) private var modelContext
-    @StateObject private var model = ComparisonViewModel()
+    @Environment(\.modelContext)
+    private var modelContext
 
-    @State private var selectedFigure: HistoricalFigure?
+    @StateObject
+    private var model = ComparisonViewModel()
+
+    @State
+    private var selectedFigure: HistoricalFigure?
 
     var body: some View {
         List {
@@ -44,7 +48,7 @@ struct CompareSearchView: View {
                                 name: result.label,
                                 subtitle: result.description,
                                 imageName: nil,
-                                imageURL: nil
+                                imageURL: result.imageURL
                             )
                         }
                         .buttonStyle(.plain)
@@ -67,17 +71,15 @@ struct CompareSearchView: View {
     private func select(
         _ result: WikidataSearchResult
     ) {
-        Task {
-            let repository = FigureCacheRepository(
-                context: modelContext
-            )
+        let repository = FigureCacheRepository(
+            context: modelContext
+        )
 
-            if let figure = await model.resolveFigure(
-                from: result,
-                repository: repository
-            ) {
-                selectedFigure = figure
-            }
+        model.resolveFigure(
+            from: result,
+            repository: repository
+        ) { figure in
+            selectedFigure = figure
         }
     }
 }

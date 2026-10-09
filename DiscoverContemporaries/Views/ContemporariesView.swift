@@ -3,6 +3,9 @@ import Combine
 import Foundation
 
 struct ContemporariesView: View {
+    @Environment(\.modelContext)
+    private var modelContext
+    
     let figure: HistoricalFigure
 
     @StateObject private var model = ContemporariesViewModel()
@@ -29,7 +32,14 @@ struct ContemporariesView: View {
         .navigationTitle("Contemporaries")
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            model.load(for: figure)
+            let repository = FigureCacheRepository(
+                context: modelContext
+            )
+
+            model.load(
+                for: figure,
+                repository: repository
+            )
         }
     }
 

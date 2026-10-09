@@ -3,7 +3,7 @@ import FirebaseFirestore
 import Foundation
 
 // MARK: - Service Protocol
-
+/// Defines bookmark operations for saving, removing, checking, and retrieving historical figures.
 protocol BookmarkServiceProtocol {
     func save(_ figure: HistoricalFigure) async throws
     func remove(_ figureID: String) async throws
@@ -12,7 +12,7 @@ protocol BookmarkServiceProtocol {
 }
 
 // MARK: - Bookmark Service
-
+/// Provides bookmark operations through the configured Firebase adapter.
 final class BookmarkService: BookmarkServiceProtocol {
     static let shared: BookmarkServiceProtocol = BookmarkService()
 
@@ -36,7 +36,7 @@ final class BookmarkService: BookmarkServiceProtocol {
 }
 
 // MARK: - Firebase Adapter
-
+/// Handles bookmark persistence in Firebase Firestore for the current authenticated user.
 final class FirebaseBookmarkAdapter {
     static let shared = FirebaseBookmarkAdapter()
 
@@ -44,6 +44,7 @@ final class FirebaseBookmarkAdapter {
 
     private init() {}
 
+    /// Saves a historical figure as a bookmark for the current user.
     func save(_ figure: HistoricalFigure) async throws {
         let userID = try currentUserID()
         let bookmarked = BookmarkedFigure(from: figure)
@@ -81,6 +82,7 @@ final class FirebaseBookmarkAdapter {
         .setData(data)
     }
 
+    /// Removes the bookmark for the specified historical figure.
     func remove(_ figureID: String) async throws {
         let userID = try currentUserID()
 
@@ -91,6 +93,7 @@ final class FirebaseBookmarkAdapter {
         .delete()
     }
 
+    /// Returns whether the specified historical figure is bookmarked.
     func isSaved(_ figureID: String) async throws -> Bool {
         let userID = try currentUserID()
 
@@ -103,6 +106,7 @@ final class FirebaseBookmarkAdapter {
         return snapshot.exists
     }
 
+    /// Returns all bookmarks for the current user.
     func fetchAll() async throws -> [BookmarkedFigure] {
         let userID = try currentUserID()
 
@@ -156,7 +160,7 @@ final class FirebaseBookmarkAdapter {
 }
 
 // MARK: - Bookmark Error
-
+/// Represents errors that can occur while accessing bookmarks.
 enum BookmarkError: LocalizedError {
     case notSignedIn
 

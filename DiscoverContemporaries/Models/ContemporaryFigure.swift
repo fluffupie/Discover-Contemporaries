@@ -1,5 +1,7 @@
 import Foundation
 
+
+/// Model for contemporary figure
 struct ContemporaryFigure: Identifiable {
     let id: String
     let name: String
@@ -8,7 +10,6 @@ struct ContemporaryFigure: Identifiable {
     let imageURL: URL?
 
     // MARK: - Conversion
-
     var historicalFigure: HistoricalFigure {
         HistoricalFigure(
             id: id,
@@ -26,7 +27,6 @@ struct ContemporaryFigure: Identifiable {
     }
 
     // MARK: - Display Values
-
     var lifespanText: String {
         historicalFigure.lifespan
     }

@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+/// Manages reading, writing, and maintaining historical figures in the SwiftData cache.
 @MainActor
 final class FigureCacheRepository {
 
@@ -11,7 +12,7 @@ final class FigureCacheRepository {
     }
 
     // MARK: - Fetch
-
+    /// Returns a cached figure by ID and records it as recently viewed.
     func fetchFigure(
         withID id: String
     ) throws -> HistoricalFigure? {
@@ -27,6 +28,7 @@ final class FigureCacheRepository {
         return cachedFigure.historicalFigure
     }
 
+    /// Returns a cached figure by ID without updating its recent-view timestamp.
     func fetchFigureWithoutMarkingViewed(
         withID id: String
     ) throws -> HistoricalFigure? {
@@ -35,6 +37,7 @@ final class FigureCacheRepository {
         )?.historicalFigure
     }
 
+    /// Returns all cached historical figures sorted by name.
     func fetchAllFigures() throws -> [HistoricalFigure] {
         let descriptor = FetchDescriptor<CachedHistoricalFigure>(
             sortBy: [
@@ -46,6 +49,7 @@ final class FigureCacheRepository {
             .map(\.historicalFigure)
     }
 
+    /// Returns the most recently viewed historical figures.
     func fetchRecentlyViewed(
         limit: Int = 10
     ) throws -> [HistoricalFigure] {
@@ -67,7 +71,7 @@ final class FigureCacheRepository {
             .map(\.historicalFigure)
     }
     
-    // method to fetch cached figures by a list of IDs
+    /// Returns cached historical figures matching the supplied IDs in the same order.
     func fetchFigures(
         withIDs ids: [String]
     ) throws -> [HistoricalFigure] {
@@ -87,7 +91,7 @@ final class FigureCacheRepository {
     }
 
     // MARK: - Save
-
+    /// Inserts or updates a historical figure in the cache.
     func save(_ figure: HistoricalFigure) throws {
         if let existingFigure = try fetchCachedFigure(
             withID: figure.id
@@ -102,7 +106,7 @@ final class FigureCacheRepository {
         try context.save()
     }
     
-    // Use saveAll for continent batches.
+    /// Inserts or updates multiple historical figures in a single save operation.
     func saveAll(
         _ figures: [HistoricalFigure]
     ) throws {
@@ -122,13 +126,14 @@ final class FigureCacheRepository {
     }
 
     // MARK: - Cache State
-
+    /// Returns whether a figure with the specified ID exists in the cache.
     func containsFigure(
         withID id: String
     ) throws -> Bool {
         try fetchCachedFigure(withID: id) != nil
     }
 
+    /// Returns whether the cache contains at least one historical figure.
     func hasAnyFigures() throws -> Bool {
         var descriptor = FetchDescriptor<CachedHistoricalFigure>()
         descriptor.fetchLimit = 1
@@ -136,6 +141,7 @@ final class FigureCacheRepository {
         return try !context.fetch(descriptor).isEmpty
     }
 
+    /// Returns whether the cached figure is newer than the specified maximum age.
     func isCacheFresh(
         for id: String,
         maxAge: TimeInterval = 60 * 60 * 24 * 7
@@ -152,7 +158,7 @@ final class FigureCacheRepository {
     }
 
     // MARK: - Delete
-
+    /// Removes the historical figure with the specified ID from the cache.
     func deleteFigure(
         withID id: String
     ) throws {
@@ -166,6 +172,7 @@ final class FigureCacheRepository {
         try context.save()
     }
 
+    /// Removes all historical figures from the cache.
     func clearCache() throws {
         let descriptor = FetchDescriptor<CachedHistoricalFigure>()
         let figures = try context.fetch(descriptor)
@@ -178,7 +185,6 @@ final class FigureCacheRepository {
     }
 
     // MARK: - Private Helpers
-
     private func fetchCachedFigure(
         withID id: String
     ) throws -> CachedHistoricalFigure? {

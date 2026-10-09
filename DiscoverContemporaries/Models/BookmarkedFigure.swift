@@ -1,5 +1,6 @@
 import Foundation
 
+/// Model for bookmarked figure
 struct BookmarkedFigure: Codable, Identifiable {
     let id: String
     let name: String
