@@ -126,7 +126,7 @@ struct ExploreCard: View {
             Text(subtitle)
                 .font(.caption)
                 .foregroundStyle(Color.cardSecondaryText)
-                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(
             maxWidth: .infinity,

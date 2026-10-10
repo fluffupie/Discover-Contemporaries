@@ -3,6 +3,9 @@ import SwiftUI
 struct FeatureCard: View {
 
     let figure: HistoricalFigure
+    
+    @Environment(\.dynamicTypeSize)
+    private var dynamicTypeSize
 
     private var gradient: LinearGradient {
         LinearGradient(
@@ -30,23 +33,27 @@ struct FeatureCard: View {
                 ZStack(alignment: .bottomLeading) {
                     gradient
 
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(figure.name)
                             .font(.title2)
                             .bold()
+                            .lineLimit(2)
 
                         Text(figure.lifespan)
                             .font(.subheadline)
 
-                        Text(
-                            figure.subtitle
-                                ?? figure.primaryOccupation
-                        )
-                        .font(.caption)
-                        .lineLimit(2)
+                        if !dynamicTypeSize.isAccessibilitySize {
+                            Text(figure.subtitle ?? figure.primaryOccupation)
+                                .font(.caption)
+                                .lineLimit(2)
+                        }
                     }
                     .foregroundStyle(.white)
-                    .padding(16)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                    .padding(.bottom, 34)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.black.opacity(0.6))
                 }
             }
         }

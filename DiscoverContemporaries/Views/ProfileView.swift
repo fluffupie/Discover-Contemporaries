@@ -101,7 +101,7 @@ struct ProfileView: View {
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(Color.emerald)
+                        .background(Color(red: 0.0, green: 0.35, blue: 0.25))
                         .clipShape(
                             RoundedRectangle(
                                 cornerRadius: 6
@@ -221,16 +221,15 @@ private struct ProfileHero: View {
                     .lineLimit(2)
                     .minimumScaleFactor(0.78)
 
-                HStack(spacing: 8) {
-                    ProfilePill(
-                        text: roleLabel,
-                        systemImage: "sparkle"
-                    )
-
-                    ProfilePill(
-                        text: birthPlace,
-                        systemImage: "globe"
-                    )
+                ViewThatFits {
+                    HStack(spacing: 8) {
+                        ProfilePill(text: roleLabel, systemImage: "sparkle")
+                        ProfilePill(text: birthPlace, systemImage: "globe")
+                    }
+                    VStack(spacing: 8) {
+                        ProfilePill(text: roleLabel, systemImage: "sparkle")
+                        ProfilePill(text: birthPlace, systemImage: "globe")
+                    }
                 }
             }
             .accessibilityElement(children: .combine)
@@ -249,19 +248,14 @@ private struct ProfilePill: View {
     let systemImage: String
 
     var body: some View {
-        Label(
-            text.uppercased(),
-            systemImage: systemImage
-        )
-        .font(.caption)
-        .lineLimit(1)
-        .minimumScaleFactor(0.8)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(
-            Color.coral.opacity(0.08)
-        )
-        .clipShape(Capsule())
+        Label(text.uppercased(), systemImage: systemImage)
+            .font(.caption)
+            .fixedSize(horizontal: false, vertical: true)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color.coral.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
 

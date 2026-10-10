@@ -220,11 +220,10 @@ private struct RecentlyViewedCard: View {
             )
 
             Text(figure.name)
-                .font(
-                    .subheadline
-                )
+                .font(.subheadline)
                 .foregroundStyle(Color.black.opacity(0.9))
-                .lineLimit(1)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(width: 120)
     }

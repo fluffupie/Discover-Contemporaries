@@ -80,6 +80,7 @@ struct BookmarkView: View {
             "No saved figures",
             systemImage: "heart",
             description: Text("Your bookmarked profiles will appear here.")
+                .foregroundStyle(Color.black.opacity(0.75))
         )
         .accessibilityElement(children: .combine)
         .accessibilityHint("Bookmark a profile to see it listed here.")

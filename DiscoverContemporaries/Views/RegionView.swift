@@ -55,7 +55,6 @@ struct RegionView: View {
                     .accessibilityValue("Explore figures in \(continent.name)")
                     .accessibilityHint("Opens top figures for this region")
                 }
-                .buttonStyle(.plain)
             }
             .navigationTitle("Regions")
             .navigationBarTitleDisplayMode(.inline)

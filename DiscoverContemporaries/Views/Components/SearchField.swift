@@ -22,7 +22,7 @@ struct SearchField: View {
                 .foregroundStyle(Color.secondaryText)
                 .accessibilityHidden(true)
 
-            TextField("Search figures", text: $searchText)
+            TextField("Search", text: $searchText)
                 .font(.body)
                 .foregroundStyle(Color.primaryText)
                 .textInputAutocapitalization(.words)
