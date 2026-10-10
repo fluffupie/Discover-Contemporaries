@@ -33,6 +33,10 @@ struct ExploreView: View {
                             systemImage: "globe",
                             backgroundColor: .minty
                         )
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Explore by region")
+                        .accessibilityValue("Explore figures around the world")
+                        .accessibilityHint("Opens regional exploration")
                     }
                     .buttonStyle(ExploreButtonStyle())
                     
@@ -46,6 +50,10 @@ struct ExploreView: View {
                             systemImage: "paintpalette.fill",
                             backgroundColor: Color.lavender
                         )
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Explore by occupation")
+                        .accessibilityValue("Discover artists, scientists, rulers, writers and more")
+                        .accessibilityHint("Opens occupation-based exploration")
                     }
                     .buttonStyle(ExploreButtonStyle())
                 }
@@ -61,6 +69,10 @@ struct ExploreView: View {
                         systemImage: "timeline.selection",
                         backgroundColor: Color.peach
                     )
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Explore the timeline")
+                    .accessibilityValue("See historical figures across time")
+                    .accessibilityHint("Opens the historical timeline")
                 }
                 .buttonStyle(ExploreButtonStyle())
             }
@@ -91,26 +103,29 @@ struct ExploreCard: View {
                     Circle()
                         .fill(Color.white.opacity(0.45))
                         .frame(width: 46, height: 46)
+                        .accessibilityHidden(true)
 
                     Image(systemName: systemImage)
-                        .font(.system(size: 21, weight: .semibold))
+                        .font(.title3.weight(.semibold))
+                        .accessibilityHidden(true)
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.secondaryText)
+                    .foregroundStyle(Color.cardSecondaryText)
+                    .accessibilityHidden(true)
             }
             Spacer()
 
             Text(title)
                 .font(.headline)
-                .foregroundStyle(Color.primaryText)
+                .foregroundStyle(Color.black.opacity(0.85))
 
             Text(subtitle)
                 .font(.caption)
-                .foregroundStyle(Color.secondaryText)
+                .foregroundStyle(Color.cardSecondaryText)
                 .lineLimit(2)
         }
         .frame(
@@ -152,9 +167,11 @@ struct ExploreWideCard: View {
                 Circle()
                     .fill(Color.white.opacity(0.45))
                     .frame(width: 46, height: 46)
+                    .accessibilityHidden(true)
 
                 Image(systemName: systemImage)
-                    .font(.system(size: 21, weight: .semibold))
+                    .font(.title3.weight(.semibold))
+                    .accessibilityHidden(true)
             }
 
             VStack(
@@ -163,11 +180,11 @@ struct ExploreWideCard: View {
             ) {
                 Text(title)
                     .font(.headline)
-                    .foregroundStyle(Color.primaryText)
+                    .foregroundStyle(Color.black.opacity(0.85))
 
                 Text(subtitle)
                     .font(.caption)
-                    .foregroundStyle(Color.secondaryText)
+                    .foregroundStyle(Color.cardSecondaryText)
                     .multilineTextAlignment(.leading)
             }
 
@@ -175,7 +192,8 @@ struct ExploreWideCard: View {
 
             Image(systemName: "chevron.right")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(Color.secondaryText)
+                .foregroundStyle(Color.cardSecondaryText)
+                .accessibilityHidden(true)
         }
         .padding(18)
         .background(backgroundColor)
@@ -218,3 +236,25 @@ private struct ExploreButtonStyle: ButtonStyle {
             )
     }
 }
+#Preview {
+    @MainActor
+    func makePreviewContainer() -> ModelContainer {
+        let schema = Schema([
+            CachedHistoricalFigure.self
+        ])
+        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+        do {
+            return try ModelContainer(for: schema, configurations: configuration)
+        } catch {
+            fatalError("Failed to create preview ModelContainer: \(error)")
+        }
+    }
+
+    let container = makePreviewContainer()
+
+    return NavigationStack {
+        ExploreView()
+    }
+    .modelContainer(container)
+}
+

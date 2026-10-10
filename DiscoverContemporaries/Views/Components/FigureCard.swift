@@ -1,9 +1,15 @@
 import SwiftUI
 
 /// Displays a historical figure as a portrait card with their name and birthplace.
+///
+/// The card supports Dynamic Type and provides a combined accessibility
+/// description for VoiceOver.
 struct FigureCard: View {
+
+    /// The historical figure represented by the card.
     let figure: HistoricalFigure
 
+    /// The portrait and biographical information displayed on the card.
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             PortraitImage(
@@ -14,19 +20,25 @@ struct FigureCard: View {
             .frame(height: 160)
             .frame(maxWidth: .infinity)
             .clipped()
+            .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(figure.name)
-                    .font(.system(size: 16, weight: .medium, design: .serif))
+                    .font(.subheadline.weight(.medium))
+                    .fontDesign(.serif)
                     .foregroundStyle(Color.primaryText)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.9)
+                    .fixedSize(
+                        horizontal: false,
+                        vertical: true
+                    )
 
                 Text(figure.birthPlace ?? "Unknown birth place")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.caption.weight(.medium))
                     .foregroundStyle(Color.secondaryText)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.9)
+                    .fixedSize(
+                        horizontal: false,
+                        vertical: true
+                    )
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 9)
@@ -51,5 +63,43 @@ struct FigureCard: View {
             radius: 8,
             y: 4
         )
+    }
+}
+
+#Preview {
+    func date(
+        _ year: Int,
+        _ month: Int = 1,
+        _ day: Int = 1
+    ) -> Date {
+        Calendar(identifier: .gregorian)
+            .date(
+                from: DateComponents(
+                    year: year,
+                    month: month,
+                    day: day
+                )
+            )!
+    }
+
+    let sample = HistoricalFigure(
+        id: "Q5592",
+        name: "Marie Curie",
+        descriptionText: "Physicist and chemist",
+        gender: "female",
+        birthPlace: "Warsaw, Poland",
+        birthDate: date(1867, 11, 7),
+        deathDate: date(1934, 7, 4),
+        occupations: ["Physicist", "Chemist"],
+        movements: [],
+        imageURL: nil,
+        imageName: nil
+    )
+
+    return VStack(spacing: 16) {
+        FigureCard(figure: sample)
+            .frame(width: 180)
+            .padding()
+            .background(Color.appBackground)
     }
 }

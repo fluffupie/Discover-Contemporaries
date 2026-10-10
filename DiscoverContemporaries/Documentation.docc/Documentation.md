@@ -15,7 +15,7 @@ Users can search for historical figures, view their profiles, visualise lifespan
 - **Historical Figure Search:** Search for historical figures using Wikidata.
 
 @Image(
-    source: "home-screen.png",
+    source: "home.png",
     alt: "Home screen with historical figure search and discovery"
 )
 

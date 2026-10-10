@@ -21,6 +21,10 @@ struct ComparisonView: View {
                         ProfileView(figure: firstFigure)
                     } label: {
                         CompareCard(figure: firstFigure)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel(firstFigure.name)
+                            .accessibilityValue(firstFigure.lifespan)
+                            .accessibilityHint("Opens profile")
                     }
                     .buttonStyle(.plain)
 
@@ -28,11 +32,14 @@ struct ComparisonView: View {
                         ProfileView(figure: secondFigure)
                     } label: {
                         CompareCard(figure: secondFigure)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel(secondFigure.name)
+                            .accessibilityValue(secondFigure.lifespan)
+                            .accessibilityHint("Opens profile")
                     }
                     .buttonStyle(.plain)
                 }
 
-                // overlapping visuals here
                 if let timeline = timelineData {
                     LifespanTimeline(
                         firstFigure: firstFigure,
@@ -47,6 +54,9 @@ struct ComparisonView: View {
                             "Both figures need a known birth date."
                         )
                     )
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Unable to compare lifespans")
+                    .accessibilityHint("Birth dates are required for both figures")
                 }
 
             }
@@ -116,12 +126,13 @@ struct ComparisonView: View {
         private var noOverlapView: some View {
             HStack(spacing: 8) {
                 Image(systemName: "calendar.badge.minus")
-
+                    .accessibilityHidden(true)
+                
                 Text("Their lifespans did not overlap.")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.secondaryText)
             }
-            .foregroundStyle(Color.secondaryText)
+            .accessibilityLabel("No overlapping years")
             .padding(.vertical, 8)
         }
 
@@ -129,13 +140,16 @@ struct ComparisonView: View {
         private var overlapHeader: some View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(timeline.overlapYears) years")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundStyle(Color.primaryText)
-
+                    .font(.title.weight(.bold))
+                    .foregroundStyle(Color.black.opacity(0.85))
+                
                 Text("alive at the same time")
                     .font(.subheadline)
                     .foregroundStyle(Color.secondaryText)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Overlap")
+            .accessibilityValue("\(timeline.overlapYears) years alive at the same time")
         }
 
         /// A horizontal axis with labeled ticks for the start, middle, and end years.
@@ -143,40 +157,35 @@ struct ComparisonView: View {
             VStack(spacing: 4) {
                 HStack {
                     tickLabel("\(timeline.startYear)")
-
                     Spacer()
-
                     tickLabel("\(timeline.middleYear)")
-
                     Spacer()
-
-                    tickLabel(
-                        timeline.endsAtPresent
-                            ? "Present"
-                            : "\(timeline.endYear)"
-                    )
+                    tickLabel(timeline.endsAtPresent ? "Present" : "\(timeline.endYear)")
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Timeline scale")
+                .accessibilityValue("\(timeline.startYear) to \(timeline.endsAtPresent ? "Present" : "\(timeline.endYear)")")
 
                 Rectangle()
                     .fill(Color.secondaryText.opacity(0.25))
                     .frame(height: 1)
+                    .accessibilityHidden(true)
             }
         }
 
         /// Renders a small tick label and marker used by the year scale.
         /// - Parameter text: The year text to display.
-        private func tickLabel(
-            _ text: String
-        ) -> some View {
+        private func tickLabel(_ text: String) -> some View {
             VStack(spacing: 3) {
                 Text(text)
                     .font(.caption2)
                     .foregroundStyle(Color.secondaryText)
-
                 Rectangle()
                     .fill(Color.secondaryText.opacity(0.35))
                     .frame(width: 1, height: 5)
+                    .accessibilityHidden(true)
             }
+            .accessibilityHidden(true)
         }
 
         /// Renders a single figure's lifespan bar on the shared timeline.
@@ -196,10 +205,8 @@ struct ComparisonView: View {
                 HStack {
                     Text(figure.name)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color.primaryText)
-
+                        .foregroundStyle(Color.black.opacity(0.85))
                     Spacer()
-
                     Text(
                         isLiving
                             ? "\(birthYear) – Present"
@@ -208,12 +215,16 @@ struct ComparisonView: View {
                     .font(.caption2)
                     .foregroundStyle(Color.secondaryText)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(figure.name)
+                .accessibilityValue(isLiving ? "\(birthYear) to Present" : "\(birthYear) to \(deathYear)")
 
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
                         Capsule()
                             .fill(Color.gray.opacity(0.12))
                             .frame(height: 12)
+                            .accessibilityHidden(true)
 
                         Capsule()
                             .fill(Color.emerald)
@@ -231,6 +242,7 @@ struct ComparisonView: View {
                                     year: birthYear
                                 )
                             )
+                            .accessibilityHidden(true)
                     }
                 }
                 .frame(height: 12)
@@ -242,7 +254,7 @@ struct ComparisonView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Shared lifetime")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.primaryText)
+                    .foregroundStyle(Color.black.opacity(0.85))
 
                 GeometryReader { geometry in
                     let offset = barOffset(
@@ -278,6 +290,11 @@ struct ComparisonView: View {
                 }
                 .frame(height: 38)
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Shared lifetime")
+            .accessibilityValue(
+                "\(timeline.overlapStartYear) to \(timeline.overlapEndsAtPresent ? "Present" : "\(timeline.overlapEndYear)")"
+            )
         }
 
         /// Computes the x-offset for a year relative to the timeline's start and end.
@@ -431,3 +448,42 @@ struct ComparisonView: View {
     }
 }
 
+#Preview {
+    // Helper to construct a date from year, month, day
+    func date(_ year: Int, _ month: Int = 1, _ day: Int = 1) -> Date {
+        Calendar(identifier: .gregorian)
+            .date(from: DateComponents(year: year, month: month, day: day))!
+    }
+
+    let ada = HistoricalFigure(
+        id: "Q7259",
+        name: "Ada Lovelace",
+        descriptionText: "Mathematician and writer",
+        gender: "female",
+        birthPlace: "London, England",
+        birthDate: date(1815, 12, 10),
+        deathDate: date(1852, 11, 27),
+        occupations: ["Mathematician", "Writer"],
+        movements: [],
+        imageURL: nil,
+        imageName: nil
+    )
+
+    let turing = HistoricalFigure(
+        id: "Q7251",
+        name: "Alan Turing",
+        descriptionText: "Computer scientist and mathematician",
+        gender: "male",
+        birthPlace: "London, England",
+        birthDate: date(1912, 6, 23),
+        deathDate: date(1954, 6, 7),
+        occupations: ["Computer scientist", "Mathematician"],
+        movements: [],
+        imageURL: nil,
+        imageName: nil
+    )
+
+    return NavigationStack {
+        ComparisonView(firstFigure: ada, secondFigure: turing)
+    }
+}

@@ -4,12 +4,12 @@ struct EmptySearchView: View {
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: "person.crop.circle.badge.questionmark")
-                .font(.system(size: 28, weight: .semibold))
+                .font(.title.weight(.semibold))
                 .foregroundStyle(Color.secondaryText)
 
             Text("No matching figures")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Color.primaryText)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(Color.black.opacity(0.85))
 
             Text("Try searching by name, role, era, or lifespan.")
                 .font(.caption2)
@@ -36,15 +36,16 @@ struct CompareCard: View {
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(figure.name)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(Color.primaryText)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.black.opacity(0.85))
                     .lineLimit(2)
                     .minimumScaleFactor(0.9)
                 Text(figure.lifespan)
                     .font(.caption2)
                     .foregroundStyle(Color.secondaryText)
                 Text(figure.ageText)
-                    .font(.system(size: 12, weight: .regular))
+
+                    .font(.caption2.weight(.regular))
 
             }
             .padding(10)
@@ -58,3 +59,42 @@ struct CompareCard: View {
         .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
     }
 }
+#Preview("Empty Search View") {
+    VStack(spacing: 20) {
+        EmptySearchView()
+            .padding()
+            .background(Color.appBackground)
+    }
+    .padding()
+}
+
+#Preview("Compare Card") {
+    // Helper to construct a date from year, month, day
+    func date(_ year: Int, _ month: Int = 1, _ day: Int = 1) -> Date {
+        Calendar(identifier: .gregorian)
+            .date(from: DateComponents(year: year, month: month, day: day))!
+    }
+
+    // Sample historical figure for the compare card
+    let sample = HistoricalFigure(
+        id: "Q5592",
+        name: "Marie Curie",
+        descriptionText: "Physicist and chemist",
+        gender: "female",
+        birthPlace: "Warsaw, Poland",
+        birthDate: date(1867, 11, 7),
+        deathDate: date(1934, 7, 4),
+        occupations: ["Physicist", "Chemist"],
+        movements: [],
+        imageURL: nil,
+        imageName: nil
+    )
+
+    return VStack(spacing: 16) {
+        CompareCard(figure: sample)
+            .frame(width: 180)
+            .padding()
+            .background(Color.appBackground)
+    }
+}
+

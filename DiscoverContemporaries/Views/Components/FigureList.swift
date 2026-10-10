@@ -21,7 +21,7 @@ struct FigureList: View {
             VStack(alignment: .leading, spacing: 5) {
                 Text(name)
                     .font(.headline)
-                    .foregroundStyle(Color.primaryText)
+                    .foregroundStyle(Color.black.opacity(0.85))
                     .lineLimit(2)
 
                 if let subtitle, !subtitle.isEmpty {

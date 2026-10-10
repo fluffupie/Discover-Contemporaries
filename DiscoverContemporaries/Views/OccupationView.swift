@@ -66,6 +66,9 @@ struct OccupationView: View {
                     occupation.name,
                     systemImage: occupation.systemImage
                 )
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(occupation.name)
+                .accessibilityHint("Opens top figures for \(occupation.name)")
             }
         }
         .listStyle(.automatic)
@@ -108,7 +111,8 @@ private struct OccupationTopFiguresView: View {
     var body: some View {
         Group {
             if model.figures.isEmpty && model.isLoading {
-                ProgressView()
+                ProgressView("Loading…")
+                    .accessibilityHint("Please wait while figures are loading.")
 
             } else if let errorMessage = model.errorMessage,
                       model.figures.isEmpty {
@@ -118,12 +122,19 @@ private struct OccupationTopFiguresView: View {
                     systemImage: "exclamationmark.triangle",
                     description: Text(errorMessage)
                 )
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Unable to load figures")
+                .accessibilityValue(errorMessage)
+                .accessibilityHint("Try again later or pull to refresh if available.")
 
             } else if model.figures.isEmpty {
                 ContentUnavailableView(
                     "No figures found",
                     systemImage: "person.crop.circle.badge.questionmark"
                 )
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("No figures found")
+                .accessibilityHint("No matching historical figures were found for this occupation.")
 
             } else {
                 figuresList
@@ -157,6 +168,10 @@ private struct OccupationTopFiguresView: View {
                     imageName: figure.imageName,
                     imageURL: figure.imageURL
                 )
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(figure.name)
+                .accessibilityValue(figure.subtitle ?? figure.lifespan)
+                .accessibilityHint("Opens profile")
             }
         }
         .listStyle(.plain)

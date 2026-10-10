@@ -40,13 +40,11 @@ struct HomeView: View {
                 spacing: 24
             ) {
                 HeaderView()
-
-                SearchField(
-                    searchText: $model.searchText
-                )
-                .onSubmit {
-                    model.searchFigures()
-                }
+                
+                SearchField(searchText: $model.searchText)
+                    .onSubmit {
+                        model.searchFigures()
+                    }
 
                 if model.hasSearchQuery {
                     SearchResultsSection(
@@ -118,7 +116,7 @@ private struct ExploreFiguresSection: View {
         ) {
             Text("Explore figures")
                 .font(.headline)
-                .foregroundStyle(Color.primaryText)
+                .foregroundStyle(Color.black.opacity(0.85))
 
             DefaultCachedFiguresGrid(
                 figures: figures
@@ -144,7 +142,7 @@ private struct RecentlyViewedSection: View {
         ) {
             Text("Recently viewed")
                 .font(.headline)
-                .foregroundStyle(Color.primaryText)
+                .foregroundStyle(Color.black.opacity(0.9))
 
             ScrollView(
                 .horizontal,
@@ -160,6 +158,10 @@ private struct RecentlyViewedSection: View {
                             RecentlyViewedCard(
                                 figure: figure
                             )
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel(figure.name)
+                            .accessibilityValue(figure.descriptionText ?? figure.name)
+                            .accessibilityHint("Opens profile")
                         }
                         .buttonStyle(.plain)
                     }
@@ -196,14 +198,9 @@ private struct RecentlyViewedCard: View {
 
             Text(figure.name)
                 .font(
-                    .system(
-                        size: 14,
-                        weight: .semibold
-                    )
+                    .subheadline
                 )
-                .foregroundStyle(
-                    Color.primaryText
-                )
+                .foregroundStyle(Color.black.opacity(0.9))
                 .lineLimit(1)
         }
         .frame(width: 120)
@@ -237,19 +234,25 @@ private struct SearchResultsSection: View {
                 .foregroundStyle(Color.primaryText)
 
             if isLoading {
-                ProgressView()
+                ProgressView("Searching…")
+                    .accessibilityHint("Please wait while results are loading")
                     .frame(maxWidth: .infinity)
                     .padding(.top, 30)
 
             } else if let errorMessage {
                 Text(errorMessage)
-                    .font(.system(size: 14))
-                    .foregroundStyle(Color.secondaryText)
+                    .font(.subheadline)
+                    .foregroundStyle(Color.black.opacity(0.65))
                     .frame(maxWidth: .infinity)
                     .padding(.top, 30)
+                    .accessibilityLabel("Search error")
+                    .accessibilityValue(errorMessage)
 
             } else if results.isEmpty {
                 EmptySearchView()
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("No matching figures")
+                    .accessibilityHint("Try searching by name, role, era, or lifespan.")
 
             } else {
                 VStack(spacing: 12) {
@@ -266,20 +269,28 @@ private struct SearchResultsSection: View {
 
 // MARK: - Default Figures on Homepage
 
+
 private struct DefaultCachedFiguresGrid: View {
 
+    /// The historical figures displayed in the grid.
     let figures: [HistoricalFigure]
 
-    private let columns = [
-        GridItem(
-            .flexible(),
-            spacing: 12
-        ),
-        GridItem(
-            .flexible(),
-            spacing: 12
-        ),
-    ]
+    /// The user's preferred Dynamic Type size.
+    @Environment(\.dynamicTypeSize)
+    private var dynamicTypeSize
+
+    /// The adaptive grid layout for historical figure cards.
+    ///
+    /// Displays two columns at standard text sizes and
+    /// one column at accessibility text sizes.
+    private var columns: [GridItem] {
+        let count = dynamicTypeSize.isAccessibilitySize ? 1 : 2
+
+        return Array(
+            repeating: GridItem(.flexible(), spacing: 12),
+            count: count
+        )
+    }
 
     var body: some View {
         if figures.isEmpty {
@@ -298,6 +309,9 @@ private struct DefaultCachedFiguresGrid: View {
                         FigureCard(
                             figure: figure
                         )
+                        .accessibilityHint(
+                            "Opens historical figure profile"
+                        )
                     }
                     .buttonStyle(.plain)
                 }
@@ -305,6 +319,7 @@ private struct DefaultCachedFiguresGrid: View {
         }
     }
 }
+
 
 // MARK: - Header
 
@@ -318,29 +333,19 @@ private struct HeaderView: View {
             Text(
                 "Who lived at\nthe same time?"
             )
-            .font(
-                .system(
-                    size: 26,
-                    weight: .semibold,
-                    design: .serif
-                )
-            )
-            .foregroundStyle(Color.primaryText)
-            .lineSpacing(1)
-            .lineLimit(2)
-            .minimumScaleFactor(0.7)
+            .font(.largeTitle)
+            .fontWeight(.bold)
+            .fontDesign(.serif)
+            .foregroundStyle(Color.black.opacity(0.9))
             .multilineTextAlignment(.leading)
+            .accessibilityAddTraits(.isHeader)
 
             Text(
                 "Explore history through overlapping lifespans."
             )
-            .font(
-                .system(
-                    size: 14,
-                    weight: .regular
-                )
-            )
-            .foregroundStyle(Color.secondaryText)
+            .font(.subheadline)
+            .fontWeight(.medium)
+            .foregroundStyle(Color.black.opacity(0.65))
             .padding(.top, 2)
         }
         .padding(.bottom, 4)
@@ -380,46 +385,51 @@ private struct WikidataSearchResultRow: View {
                 imageName: nil,
                 imageURL: result.imageURL
             )
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(result.label)
+            .accessibilityValue(result.description ?? "No description")
+            .accessibilityHint("Opens profile")
         }
         .buttonStyle(.plain)
     }
 }
 
-// MARK: - Preview
+//// MARK: - Preview
+//
+//@MainActor
+//private func makeHomePreviewContainer() -> ModelContainer {
+//    let schema = Schema([
+//        CachedHistoricalFigure.self
+//    ])
+//
+//    let configuration = ModelConfiguration(
+//        isStoredInMemoryOnly: true
+//    )
+//
+//    do {
+//        return try ModelContainer(
+//            for: schema,
+//            configurations: configuration
+//        )
+//    } catch {
+//        fatalError(
+//            "Failed to create preview ModelContainer: \(error)"
+//        )
+//    }
+//}
+//
+//@MainActor
+//private let homePreviewContainer =
+//    makeHomePreviewContainer()
 
-@MainActor
-private func makeHomePreviewContainer() -> ModelContainer {
-    let schema = Schema([
-        CachedHistoricalFigure.self
-    ])
+//#Preview {
+//    NavigationStack {
+//        HomeView(
+//            model: HomeViewModel()
+//        )
+//    }
+//    .modelContainer(
+//        homePreviewContainer
+//    )
+//}
 
-    let configuration = ModelConfiguration(
-        isStoredInMemoryOnly: true
-    )
-
-    do {
-        return try ModelContainer(
-            for: schema,
-            configurations: configuration
-        )
-    } catch {
-        fatalError(
-            "Failed to create preview ModelContainer: \(error)"
-        )
-    }
-}
-
-@MainActor
-private let homePreviewContainer =
-    makeHomePreviewContainer()
-
-#Preview {
-    NavigationStack {
-        HomeView(
-            model: HomeViewModel()
-        )
-    }
-    .modelContainer(
-        homePreviewContainer
-    )
-}

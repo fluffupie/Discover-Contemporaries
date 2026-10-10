@@ -18,6 +18,7 @@ struct ContemporariesView: View {
         Group {
             if model.isLoading {
                 ProgressView("Loading…")
+                    .accessibilityHint("Please wait while contemporaries are loading.")
 
             } else if let errorMessage = model.errorMessage {
                 errorView(message: errorMessage)
@@ -27,6 +28,9 @@ struct ContemporariesView: View {
                     "No contemporaries",
                     systemImage: "person.2"
                 )
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("No contemporaries found")
+                .accessibilityHint("No overlapping lifespans were found for this figure.")
 
             } else {
                 contemporariesList
@@ -63,6 +67,10 @@ struct ContemporariesView: View {
                     imageName: nil,
                     imageURL: contemporary.imageURL
                 )
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(contemporary.name)
+                .accessibilityValue(contemporary.lifespanText)
+                .accessibilityHint("Opens comparison with \(figure.name)")
             }
         }
         .listStyle(.plain)
@@ -83,5 +91,9 @@ struct ContemporariesView: View {
                 .foregroundStyle(Color.secondaryText)
         }
         .padding()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Unable to load contemporaries")
+        .accessibilityValue(message)
+        .accessibilityHint("Try again later or navigate back.")
     }
 }

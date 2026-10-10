@@ -19,18 +19,15 @@ struct CompareSearchView: View {
     var body: some View {
         List {
             Section {
-                SearchField(
-                    searchText: $model.searchText
-                )
-                .onSubmit {
-                    model.performSearch()
-                }
-                .onChange(of: model.searchText) {
-                    model.searchTextChanged()
-                }
+                SearchField(searchText: $model.searchText)
+                    .accessibilityLabel("Search figures to compare")
+                    .accessibilityHint("Type a name and press Return to search")
+                    .onSubmit {model.performSearch()}
+                    .onChange(of: model.searchText) { model.searchTextChanged()}
 
                 if model.isLoading {
-                    ProgressView()
+                    ProgressView("Searching…")
+                        .accessibilityHint("Please wait while results are loading")
                         .frame(maxWidth: .infinity)
                 }
 
@@ -38,6 +35,8 @@ struct CompareSearchView: View {
                     Text(errorMessage)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .accessibilityLabel("Search error")
+                        .accessibilityValue(errorMessage)
                 }
             }
 
@@ -53,6 +52,10 @@ struct CompareSearchView: View {
                                 imageName: nil,
                                 imageURL: result.imageURL
                             )
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel(result.label)
+                            .accessibilityHint("Select to compare with \(firstFigure.name)")
+                            .accessibilityValue(result.description ?? "No description")
                         }
                         .buttonStyle(.plain)
                     }

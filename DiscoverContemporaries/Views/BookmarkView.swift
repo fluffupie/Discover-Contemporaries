@@ -8,6 +8,7 @@ struct BookmarkView: View {
         Group {
             if model.isLoading {
                 ProgressView("Loading saved figures…")
+                    .accessibilityHint("Please wait while saved figures are loaded.")
 
             } else if let errorMessage = model.errorMessage {
                 errorView(message: errorMessage)
@@ -46,6 +47,21 @@ struct BookmarkView: View {
                         imageName: figure.imageName,
                         imageURL: figure.imageURL
                     )
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(figure.name)
+                    .accessibilityHint("Opens profile")
+                    .accessibilityValue(figure.descriptionText ?? figure.name)
+                }
+                .buttonStyle(.plain)
+                .contextMenu {
+                    Button(role: .destructive) {
+                        Task { await model.remove(figure) }
+                    } label: {
+                        Label("Remove from saves", systemImage: "trash")
+                    }
+                }
+                .accessibilityAction(named: "Remove from saves") {
+                    Task { await model.remove(figure) }
                 }
             }
             .onDelete { offsets in
@@ -63,22 +79,23 @@ struct BookmarkView: View {
         ContentUnavailableView(
             "No saved figures",
             systemImage: "heart",
-            description: Text(
-                "Your bookmarked profiles will appear here."
-            )
+            description: Text("Your bookmarked profiles will appear here.")
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityHint("Bookmark a profile to see it listed here.")
     }
 
     // MARK: - Error State
 
-    private func errorView(
-        message: String
-    ) -> some View {
+    private func errorView(message: String) -> some View {
         ContentUnavailableView(
             "Unable to load saves",
             systemImage: "exclamationmark.triangle",
             description: Text(message)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Unable to load saves")
+        .accessibilityHint("Try again later or pull to refresh.")
     }
 
     // MARK: - Actions

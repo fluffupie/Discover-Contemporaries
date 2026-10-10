@@ -50,6 +50,10 @@ struct RegionView: View {
                         continent.name,
                         systemImage: continent.systemImage
                     )
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(continent.name)
+                    .accessibilityValue("Explore figures in \(continent.name)")
+                    .accessibilityHint("Opens top figures for this region")
                 }
                 .buttonStyle(.plain)
             }

@@ -64,13 +64,21 @@ struct HistoryTimelineView: View {
                         .fill(Color.black.opacity(0.08))
                         .frame(width: 1, height: model.contentHeight)
                         .offset(x: x)
+                        .accessibilityHidden(true)
 
                     Text(tick.label)
                         .font(.caption2)
                         .foregroundStyle(Color.secondaryText)
                         .fixedSize()
                         .offset(x: x + 4, y: 4)
+                        .accessibilityHidden(true)
                 }
+                
+                Color.clear
+                    .frame(height: 0.1)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Timeline scale")
+//                    .accessibilityValue("From \(model.visibleStartYear) to \(model.visibleEndYear)")
 
                 ForEach(model.entries) { entry in
                     TimelineBar(
@@ -151,6 +159,7 @@ private struct TimelineBar: View {
         .accessibilityLabel(
             "\(entry.figure.name), \(entry.yearRangeText)"
         )
+        .accessibilityHint("Select to show details and navigate to profile")
     }
 }
 
@@ -169,6 +178,8 @@ private struct TimelineFooter: View {
                 Text("Tap a bar for details. Pinch or use the buttons to zoom.")
                     .font(.caption)
                     .foregroundStyle(Color.secondaryText)
+                    .accessibilityLabel("Timeline instructions")
+                    .accessibilityValue("Tap a bar for details. Pinch or use the buttons to zoom.")
             }
 
             if model.skippedCount > 0 {
@@ -204,7 +215,7 @@ private struct TimelineFooter: View {
     ) -> some View {
         Button(action: action) {
             Image(systemName: systemImage)
-                .font(.system(size: 16, weight: .semibold))
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.white)
                 .frame(width: 44, height: 36)
                 .background(Color.minty)
@@ -226,7 +237,7 @@ private struct SelectedFigureCard: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(entry.figure.name)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.primaryText)
                         .lineLimit(1)
 
@@ -245,12 +256,17 @@ private struct SelectedFigureCard: View {
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(Color.secondaryText)
+                    .accessibilityHidden(true)
             }
             .padding(12)
             .background(Color.appBackground)
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(entry.figure.name)
+            .accessibilityValue(entry.yearRangeText)
+            .accessibilityHint("Opens profile")
         }
         .buttonStyle(.plain)
     }
@@ -260,11 +276,11 @@ private struct EmptyTimelineView: View {
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: "calendar.badge.exclamationmark")
-                .font(.system(size: 28, weight: .semibold))
+                .font(.title.weight(.semibold))
                 .foregroundStyle(Color.secondaryText)
 
             Text("Nothing to show yet")
-                .font(.system(size: 13, weight: .semibold))
+                .font(.footnote.weight(.semibold))
                 .foregroundStyle(Color.primaryText)
 
             Text("None of these figures have birth dates.")
@@ -272,6 +288,9 @@ private struct EmptyTimelineView: View {
                 .foregroundStyle(Color.secondaryText)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("No timeline data")
+        .accessibilityHint("None of the selected figures have birth dates.")
     }
 }
 

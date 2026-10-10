@@ -38,7 +38,7 @@ struct ProfileView: View {
         ScrollView(showsIndicators: false) {
             VStack(
                 alignment: .leading,
-                spacing: 24
+                spacing: 20
             ) {
                 ProfileHero(
                     figure: model.figure,
@@ -50,7 +50,7 @@ struct ProfileView: View {
 
                 ProfileSection(title: "Summary") {
                     Text(model.summaryText)
-                        .font(.system(.body, design: .serif))
+                        .font(.system(.body, design: .monospaced))
                         .fixedSize(
                             horizontal: false,
                             vertical: true
@@ -97,12 +97,7 @@ struct ProfileView: View {
                             "See all",
                             systemImage: "person.2.fill"
                         )
-                        .font(
-                            .system(
-                                size: 14,
-                                weight: .semibold
-                            )
-                        )
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
@@ -112,6 +107,7 @@ struct ProfileView: View {
                                 cornerRadius: 6
                             )
                         )
+                        .accessibilityHint("Opens contemporaries for \(model.figure.name)")
                     }
                     .buttonStyle(.plain)
                 }
@@ -158,16 +154,14 @@ struct ProfileView: View {
                             ? Color.red
                             : Color.primary
                     )
-                    .font(
-                        .system(
-                            size: 16,
-                            weight: .semibold
-                        )
-                    )
+                    .font(.subheadline.weight(.semibold))
                     .accessibilityLabel(
                         model.isBookmarked
                             ? "Remove from bookmarks"
                             : "Save to bookmarks"
+                    )
+                    .accessibilityHint(
+                        model.isBookmarked ? "Removes this figure from your bookmarks" : "Saves this figure to your bookmarks"
                     )
                 }
             }
@@ -183,12 +177,7 @@ struct ProfileView: View {
                     Image(
                         systemName: "arrow.left.arrow.right"
                     )
-                    .font(
-                        .system(
-                            size: 16,
-                            weight: .semibold
-                        )
-                    )
+                    .font(.subheadline.weight(.semibold))
                     .accessibilityLabel("Compare")
                 }
             }
@@ -219,20 +208,15 @@ private struct ProfileHero: View {
                 imageURL: imageURL
             )
             .frame(minWidth: 0, maxWidth: .infinity)
+            .accessibilityHidden(true)
             .clipShape(
                 RoundedRectangle(cornerRadius: 10)
             )
 
             VStack(spacing: 8) {
                 Text(figure.name)
-                    .font(
-                        .system(
-                            size: 28,
-                            weight: .semibold,
-                            design: .serif
-                        )
-                    )
-                    .foregroundStyle(Color.primaryText)
+                    .font(.system(.title, design: .serif).weight(.semibold))
+                    .foregroundStyle(Color.black.opacity(0.85))
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .minimumScaleFactor(0.78)
@@ -249,9 +233,11 @@ private struct ProfileHero: View {
                     )
                 }
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(figure.name)
+            .accessibilityValue("\(roleLabel). \(birthPlace)")
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
         .padding(.horizontal, 14)
     }
 }
@@ -294,6 +280,7 @@ private struct ProfileSection<Content: View>: View {
         ) {
             Text(title)
                 .font(.headline)
+                .fontDesign(.rounded)
 
             content
         }
@@ -317,17 +304,15 @@ private struct FactRow: View {
     var body: some View {
         HStack(
             alignment: .top,
-            spacing: 10
+            spacing: 14
         ) {
             Image(systemName: icon)
                 .font(
-                    .system(
-                        size: 14,
-                        weight: .semibold
-                    )
+                    .headline
                 )
                 .foregroundStyle(Color.emerald)
-                .frame(width: 22)
+                .frame(width: 25)
+                .accessibilityHidden(true)
 
             VStack(
                 alignment: .leading,
@@ -335,16 +320,16 @@ private struct FactRow: View {
             ) {
                 Text(label)
                     .font(.caption)
+                    .fontDesign(.monospaced)
                     .foregroundStyle(Color.secondaryText)
 
                 Text(value)
                     .font(
-                        .system(
-                            size: 14,
-                            weight: .medium
-                        )
+                        .subheadline
                     )
-                    .foregroundStyle(Color.primaryText)
+                    .fontDesign(.default)
+                    .fontWeight(.medium)
+                    .foregroundStyle(Color.black.opacity(0.85))
                     .fixedSize(
                         horizontal: false,
                         vertical: true
@@ -353,6 +338,9 @@ private struct FactRow: View {
 
             Spacer(minLength: 0)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(label)
+        .accessibilityValue(value)
     }
 }
 
@@ -370,12 +358,7 @@ private struct ToastBanner: View {
 
     var body: some View {
         Text(message)
-            .font(
-                .system(
-                    size: 13,
-                    weight: .semibold
-                )
-            )
+            .font(.caption.weight(.regular))
             .foregroundStyle(Color.white)
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
@@ -384,5 +367,31 @@ private struct ToastBanner: View {
             )
             .clipShape(Capsule())
             .padding(.top, 10)
+    }
+}
+
+#Preview {
+    // Helper to construct a date from year, month, day
+    func date(_ year: Int, _ month: Int = 1, _ day: Int = 1) -> Date {
+        Calendar(identifier: .gregorian)
+            .date(from: DateComponents(year: year, month: month, day: day))!
+    }
+
+    let sample = HistoricalFigure(
+        id: "Q13133",
+        name: "Jennifer Aniston",
+        descriptionText: "American actress and producer",
+        gender: "female",
+        birthPlace: "Los Angeles, California, U.S.",
+        birthDate: date(1969, 2, 11),
+        deathDate: nil,
+        occupations: ["Actor", "Producer"],
+        movements: [],
+        imageURL: URL(string: "https://upload.wikimedia.org/wikipedia/commons/1/16/JenniferAnistonHWoFFeb2012.jpg"),
+        imageName: nil
+    )
+
+    return NavigationStack {
+        ProfileView(figure: sample)
     }
 }
