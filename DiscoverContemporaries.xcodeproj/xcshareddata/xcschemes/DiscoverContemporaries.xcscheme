@@ -41,6 +41,17 @@
                ReferencedContainer = "container:DiscoverContemporaries.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BECC42C4307AA6F5009F99CC"
+               BuildableName = "DiscoverContemporariesTests.xctest"
+               BlueprintName = "DiscoverContemporariesTests"
+               ReferencedContainer = "container:DiscoverContemporaries.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
