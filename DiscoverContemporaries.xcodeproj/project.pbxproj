@@ -12,16 +12,31 @@
 		38993C2B3073D8AA00A60753 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 38993C2A3073D8AA00A60753 /* FirebaseAuth */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		BECC42BC307A9333009F99CC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 01013265304563D1006A2CF1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0101326C304563D1006A2CF1;
+			remoteInfo = DiscoverContemporaries;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		0101326D304563D1006A2CF1 /* DiscoverContemporaries.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiscoverContemporaries.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		014313A2304A7E590040D533 /* a1.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = a1.xcodeproj; path = a1/a1.xcodeproj; sourceTree = SOURCE_ROOT; };
-		BECC42B0307A89A3009F99CC /* DiscoverContemporariesUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverContemporariesUITests.swift; sourceTree = "<group>"; };
+		BECC42B6307A9333009F99CC /* DiscoverContemporariesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiscoverContemporariesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		0101326F304563D1006A2CF1 /* DiscoverContemporaries */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = DiscoverContemporaries;
+			sourceTree = "<group>";
+		};
+		BECC42B7307A9333009F99CC /* DiscoverContemporariesUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = DiscoverContemporariesUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -37,15 +52,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BECC42B3307A9333009F99CC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		01013264304563D1006A2CF1 = {
 			isa = PBXGroup;
 			children = (
-				BECC42AF307A8987009F99CC /* DiscoverContemporariesUnitTests */,
-				BECC42AE307A8971009F99CC /* DiscoverContemporariesUITests */,
 				0101326F304563D1006A2CF1 /* DiscoverContemporaries */,
+				BECC42B7307A9333009F99CC /* DiscoverContemporariesUITests */,
 				0184AC7E3068E73800AC7D20 /* Frameworks */,
 				0101326E304563D1006A2CF1 /* Products */,
 			);
@@ -55,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				0101326D304563D1006A2CF1 /* DiscoverContemporaries.app */,
+				BECC42B6307A9333009F99CC /* DiscoverContemporariesUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -71,21 +93,6 @@
 			children = (
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		BECC42AE307A8971009F99CC /* DiscoverContemporariesUITests */ = {
-			isa = PBXGroup;
-			children = (
-				BECC42B0307A89A3009F99CC /* DiscoverContemporariesUITests.swift */,
-			);
-			path = DiscoverContemporariesUITests;
-			sourceTree = "<group>";
-		};
-		BECC42AF307A8987009F99CC /* DiscoverContemporariesUnitTests */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = DiscoverContemporariesUnitTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -116,6 +123,29 @@
 			productReference = 0101326D304563D1006A2CF1 /* DiscoverContemporaries.app */;
 			productType = "com.apple.product-type.application";
 		};
+		BECC42B5307A9333009F99CC /* DiscoverContemporariesUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BECC42BE307A9333009F99CC /* Build configuration list for PBXNativeTarget "DiscoverContemporariesUITests" */;
+			buildPhases = (
+				BECC42B2307A9333009F99CC /* Sources */,
+				BECC42B3307A9333009F99CC /* Frameworks */,
+				BECC42B4307A9333009F99CC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BECC42BD307A9333009F99CC /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				BECC42B7307A9333009F99CC /* DiscoverContemporariesUITests */,
+			);
+			name = DiscoverContemporariesUITests;
+			packageProductDependencies = (
+			);
+			productName = DiscoverContemporariesUITests;
+			productReference = BECC42B6307A9333009F99CC /* DiscoverContemporariesUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -123,11 +153,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2650;
+				LastSwiftUpdateCheck = 2660;
 				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					0101326C304563D1006A2CF1 = {
 						CreatedOnToolsVersion = 26.5;
+					};
+					BECC42B5307A9333009F99CC = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = 0101326C304563D1006A2CF1;
 					};
 				};
 			};
@@ -155,12 +189,20 @@
 			projectRoot = "";
 			targets = (
 				0101326C304563D1006A2CF1 /* DiscoverContemporaries */,
+				BECC42B5307A9333009F99CC /* DiscoverContemporariesUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		0101326B304563D1006A2CF1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BECC42B4307A9333009F99CC /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -177,7 +219,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BECC42B2307A9333009F99CC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BECC42BD307A9333009F99CC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0101326C304563D1006A2CF1 /* DiscoverContemporaries */;
+			targetProxy = BECC42BC307A9333009F99CC /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		01013276304563D3006A2CF1 /* Debug */ = {
@@ -365,6 +422,44 @@
 			};
 			name = Release;
 		};
+		BECC42BF307A9333009F99CC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = RMIT.DiscoverContemporariesUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = DiscoverContemporaries;
+			};
+			name = Debug;
+		};
+		BECC42C0307A9333009F99CC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = RMIT.DiscoverContemporariesUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = DiscoverContemporaries;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -382,6 +477,15 @@
 			buildConfigurations = (
 				01013279304563D3006A2CF1 /* Debug */,
 				0101327A304563D3006A2CF1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BECC42BE307A9333009F99CC /* Build configuration list for PBXNativeTarget "DiscoverContemporariesUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BECC42BF307A9333009F99CC /* Debug */,
+				BECC42C0307A9333009F99CC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
