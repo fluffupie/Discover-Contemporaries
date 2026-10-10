@@ -5,25 +5,19 @@ import SwiftData
 @MainActor
 enum FigureDataSeeder {
 
-    // TODO: seedIfNeeded currently checks hasAnyFigures(), so if any cached figure already exists, it skips all bundled seeding.
     /// Loads bundled seed data into SwiftData when no cached figures exist.
     static func seedIfNeeded(
         context: ModelContext
     ) throws {
-        let repository = FigureCacheRepository(
-            context: context
-        )
-
-        guard try !repository.hasAnyFigures() else {
-            return
-        }
-
+        let repository = FigureCacheRepository(context: context)
         let seedData = try loadSeedData()
 
         for seedFigure in seedData.figures {
-            try repository.save(
-                seedFigure.historicalFigure
-            )
+            let figure = seedFigure.historicalFigure
+
+            if try !repository.containsFigure(withID: figure.id) {
+                try repository.save(figure)
+            }
         }
     }
 
@@ -268,5 +262,16 @@ enum OccupationFigureSeeds {
         "Q5879",    // Akbar
         "Q7192",    // Qin Shi Huang
         "Q176622"   // Tutankhamun
+    ]
+}
+
+enum FeaturedFigureSeeds {
+
+    static let ids: [String] = [
+        "Q635",   // Cleopatra VII
+        "Q1696",  // Wu Zetian
+        "Q762",   // Leonardo da Vinci
+        "Q7207",  // Elizabeth I
+        "Q7186"   // Marie Curie
     ]
 }

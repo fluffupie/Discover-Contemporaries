@@ -27,6 +27,18 @@ struct HomeView: View {
             wrappedValue: model ?? HomeViewModel()
         )
     }
+    
+    private var featuredFigures: [HistoricalFigure] {
+        let figuresByID = Dictionary(
+            uniqueKeysWithValues: cachedFigures.map {
+                ($0.wikidataID, $0.historicalFigure)
+            }
+        )
+
+        return FeaturedFigureSeeds.ids.compactMap {
+            figuresByID[$0]
+        }
+    }
 
     /// When a search query is active, search results replace the
         /// default exploration and recently viewed sections.
@@ -53,21 +65,32 @@ struct HomeView: View {
                         results: model.searchResults
                     )
                 } else {
-                    ExploreFiguresSection(
-                        figures: model.defaultFigures(
-                            from: cachedFigures
-                        )
-                    )
-
-                    let recentFigures = model.recentlyViewedFigures(
+                    
+                    let defaultFigures = model.defaultFigures(
                         from: cachedFigures
                     )
 
-                    if !recentFigures.isEmpty {
-                        RecentlyViewedSection(
-                            figures: recentFigures
-                        )
+                    let exploreFigures = defaultFigures.filter {
+                        !FeaturedFigureSeeds.ids.contains($0.id)
                     }
+                    
+                    
+
+                    FeaturedFiguresSection(figures: featuredFigures)
+
+                    ExploreFiguresSection(figures: exploreFigures)
+
+                let recentFigures = model.recentlyViewedFigures(
+                    from: cachedFigures
+                )
+
+                if !recentFigures.isEmpty {
+                    RecentlyViewedSection(
+                        figures: recentFigures
+                    )
+                }
+                    
+                    
                 }
             }
             .padding(.horizontal, 22)
@@ -394,42 +417,23 @@ private struct WikidataSearchResultRow: View {
     }
 }
 
-//// MARK: - Preview
-//
-//@MainActor
-//private func makeHomePreviewContainer() -> ModelContainer {
-//    let schema = Schema([
-//        CachedHistoricalFigure.self
-//    ])
-//
-//    let configuration = ModelConfiguration(
-//        isStoredInMemoryOnly: true
-//    )
-//
-//    do {
-//        return try ModelContainer(
-//            for: schema,
-//            configurations: configuration
-//        )
-//    } catch {
-//        fatalError(
-//            "Failed to create preview ModelContainer: \(error)"
-//        )
-//    }
-//}
-//
-//@MainActor
-//private let homePreviewContainer =
-//    makeHomePreviewContainer()
+// MARK: - Featured Figures
 
-//#Preview {
-//    NavigationStack {
-//        HomeView(
-//            model: HomeViewModel()
-//        )
-//    }
-//    .modelContainer(
-//        homePreviewContainer
-//    )
-//}
+private struct FeaturedFiguresSection: View {
 
+    let figures: [HistoricalFigure]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Featured figures")
+                .font(.headline)
+                .foregroundStyle(Color.primaryText)
+
+            PageView(figures: figures)
+                .aspectRatio(3 / 2, contentMode: .fit)
+                .clipShape(
+                    RoundedRectangle(cornerRadius: 12)
+                )
+        }
+    }
+}

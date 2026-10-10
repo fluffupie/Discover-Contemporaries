@@ -70,6 +70,73 @@
       ],
       "imageName": "mj",
       "contemporaries": []
+    },
+    {
+      "id": "Q635",
+      "name": "Cleopatra VII",
+      "descriptionText": "Last active ruler of Ptolemaic Egypt, known for her political alliances with Julius Caesar and Mark Antony.",
+      "gender": "Female",
+      "birthDate": null,
+      "deathDate": null,
+      "birthPlace": "Ptolemaic Egypt",
+      "occupations": [
+        "Monarch",
+        "Political leader"
+      ],
+      "movements": [],
+      "imageName": null,
+      "contemporaries": []
+    },
+    {
+      "id": "Q1696",
+      "name": "Wu Zetian",
+      "descriptionText": "The only woman to formally rule China as emperor, governing during the Zhou dynasty established within the Tang period.",
+      "gender": "Female",
+      "birthDate": "0624-01-01",
+      "deathDate": "0705-12-16",
+      "birthPlace": "China",
+      "occupations": [
+        "Emperor",
+        "Monarch"
+      ],
+      "movements": [
+        "Tang dynasty"
+      ],
+      "imageName": "wu-zetian",
+      "contemporaries": []
+    },
+    {
+      "id": "Q7207",
+      "name": "Elizabeth I",
+      "descriptionText": "Queen of England and Ireland whose reign saw major cultural, political, and maritime developments.",
+      "gender": "Female",
+      "birthDate": "1533-09-07",
+      "deathDate": "1603-03-24",
+      "birthPlace": "England",
+      "occupations": [
+        "Monarch"
+      ],
+      "movements": [
+        "Elizabethan era"
+      ],
+      "imageName": null,
+      "contemporaries": []
+    },
+    {
+      "id": "Q7186",
+      "name": "Marie Curie",
+      "descriptionText": "Physicist and chemist whose pioneering research on radioactivity earned her two Nobel Prizes.",
+      "gender": "Female",
+      "birthDate": "1867-11-07",
+      "deathDate": "1934-07-04",
+      "birthPlace": "Poland",
+      "occupations": [
+        "Physicist",
+        "Chemist"
+      ],
+      "movements": [],
+      "imageName": "marie-curie",
+      "contemporaries": []
     }
   ]
 }

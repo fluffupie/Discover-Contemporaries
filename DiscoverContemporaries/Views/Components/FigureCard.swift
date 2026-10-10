@@ -1,9 +1,6 @@
 import SwiftUI
 
 /// Displays a historical figure as a portrait card with their name and birthplace.
-///
-/// The card supports Dynamic Type and provides a combined accessibility
-/// description for VoiceOver.
 struct FigureCard: View {
 
     /// The historical figure represented by the card.
