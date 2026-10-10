@@ -123,4 +123,77 @@ final class DiscoverContemporariesTests: XCTestCase {
         XCTAssertTrue(living.isLiving)
         XCTAssertEqual(living.yearRangeText, "1990 – Present")
     }
+    
+    // Testing HomeViewModel
+    // Test 7: Search state: whitespace is not a query and clearing reset everything
+    func testHomeViewModel_searchQueryDetectionAndClearing() {
+        let model = HomeViewModel()
+        XCTAssertFalse(model.hasSearchQuery)
+        
+        model.searchText = "   "
+        XCTAssertFalse(model.hasSearchQuery, "Whitespace alone should not trigger a search")
+        
+        model.searchText = "Newton"
+        XCTAssertTrue(model.hasSearchQuery)
+        
+        model.clearSearch()
+        XCTAssertEqual(model.searchText, "")
+        XCTAssertFalse(model.hasSearchQuery)
+        XCTAssertTrue(model.searchResults.isEmpty)
+        XCTAssertNil(model.errorMessage)
+        XCTAssertFalse(model.isLoading)
+    }
+    
+    // Testing TimelineViewModel
+    // Test 8: Input cleaning, remove duplicate, skip undated, sorting by start year
+    func testTimelineViewModel_removesDuplicatesSkipsUndatedAndSorts() {
+        let ada = makeFigure(id: "Q7259", name: "Ada Lovelace",
+                             birth: date(1815, 12, 10), death: date(1852, 11, 27))
+        let leonardo = makeFigure(id: "Q762", name: "Leonardo da Vinci",
+                                  birth: date(1452, 4, 15), death: date(1519, 5, 2))
+        let undated = makeFigure(id: "Q999", name: "Mystery Person")
+        
+        let model = TimelineViewModel(figures: [ada, leonardo, ada, undated])
+        
+        XCTAssertEqual(model.entries.map(\.id), ["Q762", "Q7259"])   // sorted, no duplicate
+        XCTAssertEqual(model.skippedCount, 1)                       // only the undated one
+    }
+    
+    // Test 9: Overlapping bars must not share a row
+    func testTimelineViewModel_overlappingFiguresGetSeparateRows() throws {
+        let leonardo = makeFigure(id: "A", name: "Leonardo",
+                                  birth: date(1452), death: date(1519))
+        let babbage = makeFigure(id: "B", name: "Babbage",
+                                 birth: date(1791), death: date(1871))
+        let ada = makeFigure(id: "C", name: "Ada",
+                             birth: date(1815), death: date(1852))
+        
+        let model = TimelineViewModel(figures: [leonardo, babbage, ada])
+        
+        let rowA = try XCTUnwrap(model.rows["A"])
+        let rowB = try XCTUnwrap(model.rows["B"])
+        let rowC = try XCTUnwrap(model.rows["C"])
+        
+        XCTAssertNotEqual(rowB, rowC, "Babbage and Ada lived at the same time")
+        XCTAssertEqual(rowA, rowB, "Leonardo's bar ends long before Babbage's starts")
+        XCTAssertEqual(model.rowCount, 2)
+    }
+    
+    // Test 10: Zoom limits and selection toggling
+    func testTimelineViewModel_zoomIsClampedAndSelectionToggles() throws {
+        let figure = makeFigure(id: "Q1", birth: date(1800), death: date(1850))
+        let model = TimelineViewModel(figures: [figure])
+        
+        for _ in 0..<30 { model.zoomIn() }
+        XCTAssertEqual(model.pointsPerYear, TimelineViewModel.maxScale)
+        
+        for _ in 0..<60 { model.zoomOut() }
+        XCTAssertEqual(model.pointsPerYear, TimelineViewModel.minScale)
+        
+        let entry = try XCTUnwrap(model.entries.first)
+        model.select(entry)
+        XCTAssertEqual(model.selectedID, "Q1")
+        model.select(entry)                       // tapping again deselects
+        XCTAssertNil(model.selectedID)
+    }
 }
