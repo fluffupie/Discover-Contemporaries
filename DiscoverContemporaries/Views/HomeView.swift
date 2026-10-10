@@ -35,9 +35,16 @@ struct HomeView: View {
             }
         )
 
-        return FeaturedFigureSeeds.ids.compactMap {
+        var result = FeaturedFigureSeeds.ids.compactMap {
             figuresByID[$0]
         }
+
+        if let index = result.firstIndex(where: { $0.name == "Marie Curie" }) {
+            let marie = result.remove(at: index)
+            result.insert(marie, at: 0)
+        }
+
+        return result
     }
 
     /// When a search query is active, search results replace the
@@ -436,3 +443,4 @@ private struct FeaturedFiguresSection: View {
         }
     }
 }
+
