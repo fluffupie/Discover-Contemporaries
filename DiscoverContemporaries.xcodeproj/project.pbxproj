@@ -15,6 +15,7 @@
 /* Begin PBXFileReference section */
 		0101326D304563D1006A2CF1 /* DiscoverContemporaries.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiscoverContemporaries.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		014313A2304A7E590040D533 /* a1.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = a1.xcodeproj; path = a1/a1.xcodeproj; sourceTree = SOURCE_ROOT; };
+		BECC42B0307A89A3009F99CC /* DiscoverContemporariesUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverContemporariesUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -42,6 +43,8 @@
 		01013264304563D1006A2CF1 = {
 			isa = PBXGroup;
 			children = (
+				BECC42AF307A8987009F99CC /* DiscoverContemporariesUnitTests */,
+				BECC42AE307A8971009F99CC /* DiscoverContemporariesUITests */,
 				0101326F304563D1006A2CF1 /* DiscoverContemporaries */,
 				0184AC7E3068E73800AC7D20 /* Frameworks */,
 				0101326E304563D1006A2CF1 /* Products */,
@@ -68,6 +71,21 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		BECC42AE307A8971009F99CC /* DiscoverContemporariesUITests */ = {
+			isa = PBXGroup;
+			children = (
+				BECC42B0307A89A3009F99CC /* DiscoverContemporariesUITests.swift */,
+			);
+			path = DiscoverContemporariesUITests;
+			sourceTree = "<group>";
+		};
+		BECC42AF307A8987009F99CC /* DiscoverContemporariesUnitTests */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = DiscoverContemporariesUnitTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
