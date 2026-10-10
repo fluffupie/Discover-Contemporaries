@@ -96,4 +96,31 @@ final class DiscoverContemporariesTests: XCTestCase {
         XCTAssertFalse(ada.matches("physicist"))
     }
     
+    // Testing Timeline Entry
+    // Test 5: Figures that cannot be placed on a timeline are rejected
+    func testTimelineEntry_returnsNilForMissingBirthDateOrImpossibleLifespan() {
+        XCTAssertNil(TimelineEntry(figure: makeFigure()))
+        
+        let deathBeforeBirth = makeFigure(birth: date(1900), death: date(1800))
+        XCTAssertNil(TimelineEntry(figure: deathBeforeBirth))
+    }
+    
+    // Test 6: BC dates become negative years and display correctly
+    func testTimelineEntry_handlesBCYearsAndLivingFigures() throws {
+        // Cleopatra: 69 BC to 30 BC (era 0 = BC)
+        let cleopatra = makeFigure(
+            birth: date(69, era: 0),
+            death: date(30, era: 0)
+        )
+        let entry = try XCTUnwrap(TimelineEntry(figure: cleopatra))
+        XCTAssertEqual(entry.startYear, -68)      // expected 69 BC -> 1 - 69
+        XCTAssertEqual(entry.endYear, -29)        // expected 30 BC -> 1 - 30
+        XCTAssertEqual(entry.yearRangeText, "69 BC – 30 BC")
+        XCTAssertEqual(TimelineEntry.label(for: 0), "1 BC")
+        XCTAssertEqual(TimelineEntry.label(for: 1452), "1452")
+        
+        let living = try XCTUnwrap(TimelineEntry(figure: makeFigure(birth: date(1990))))
+        XCTAssertTrue(living.isLiving)
+        XCTAssertEqual(living.yearRangeText, "1990 – Present")
+    }
 }
