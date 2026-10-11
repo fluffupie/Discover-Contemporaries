@@ -7,6 +7,7 @@ import Foundation
 final class TimelineViewModel: ObservableObject {
 
     // Layout constants
+    static let defaultScale: CGFloat = 4
     static let minScale: CGFloat = 0.1
     static let maxScale: CGFloat = 40
     static let rowHeight: CGFloat = 34
@@ -22,11 +23,16 @@ final class TimelineViewModel: ObservableObject {
     let highlightedID: String?
 
     // State
-    @Published private(set) var pointsPerYear: CGFloat = 4
+    @Published private(set) var pointsPerYear: CGFloat = TimelineViewModel.defaultScale
     @Published private(set) var rows: [String: Int] = [:]
     @Published var selectedID: String?
+    @Published private var storedOffset: CGSize = .zero
+    
+    // viewable size reported by canvas
+    var viewportSize: CGSize = .zero
 
     private var pinchAnchor: CGFloat?
+    private var lastPanTranslation: CGSize = .zero
 
     // Init
 
@@ -57,7 +63,7 @@ final class TimelineViewModel: ObservableObject {
         self.skippedCount = unique.count - built.count
         self.highlightedID = highlightedID
         self.selectedID = highlightedID
-        self.rows = Self.packRows(built, scale: 4)
+        self.rows = Self.packRows(built, scale: Self.defaultScale)
     }
 
     // Range
@@ -185,6 +191,47 @@ final class TimelineViewModel: ObservableObject {
             ? nil
             : entry.id
     }
+    
+    // Pan
+    
+    /// How far the canvas is shifted from its origin, kept within the canvas bounds.
+    var offset: CGSize {
+        CGSize(
+            width: min(0, max(viewportSize.width - totalWidth, storedOffset.width)),
+            height: min(0, max(viewportSize.height - contentHeight, storedOffset.height))
+        )
+    }
+    
+    /// Panning while a drag gesture is in effect
+    func panChanged(_ translation: CGSize) {
+        storedOffset = CGSize(
+            width: offset.width + translation.width - lastPanTranslation.width,
+            height: offset.height + translation.height - lastPanTranslation.height
+        )
+        
+        lastPanTranslation = translation
+    }
+    
+    /// Clears the stored drag translation when a drag gesture ends.
+    func panEnded() {
+        lastPanTranslation = .zero
+    }
+    
+    /// The range of years currently visible on screen, for display.
+    var visibleRangeText: String {
+        func year(atContentX x: CGFloat) -> Int {
+            let raw = minYear + Int(
+                ((x - Self.horizontalPadding) / pointsPerYear).rounded()
+            )
+            
+            return min(max(raw, minYear), maxYear)
+        }
+        
+        let left = -offset.width
+        
+        return "\(TimelineEntry.label(for: year(atContentX: left))) – "
+        + "\(TimelineEntry.label(for: year(atContentX: left + viewportSize.width)))"
+    }
 
     // Zoom
 
@@ -222,27 +269,88 @@ final class TimelineViewModel: ObservableObject {
         setScale(
             available / span
         )
+        storedOffset = .zero
     }
 
     /// Updates the timeline scale while a pinch gesture is in progress.
     ///
     /// - Parameter magnification: The current pinch magnification value.
     func pinchChanged(
-        _ magnification: CGFloat
+        _ magnification: CGFloat,
+        around point: CGPoint
     ) {
         if pinchAnchor == nil {
             pinchAnchor = pointsPerYear
         }
+        
+        let yearsFromStart =
+            (point.x - offset.width - Self.horizontalPadding)
+            / pointsPerYear
 
         setScale(
             (pinchAnchor ?? pointsPerYear)
             * magnification
         )
+        
+        storedOffset.width =
+            point.x
+            - Self.horizontalPadding
+            - yearsFromStart * pointsPerYear
     }
 
     /// Clears the stored pinch anchor when a pinch gesture ends.
     func pinchEnded() {
         pinchAnchor = nil
+    }
+    
+    /// Zooms so the given figure's lifespan fills the visible width.
+    ///
+    /// - Parameter entry: The timeline entry to focus on.
+    func zoom(to entry: TimelineEntry) {
+        let available = viewportSize.width - Self.horizontalPadding * 2
+        
+        guard available > 0 else {
+            return
+        }
+        
+        pinchAnchor = nil
+        setScale(available / CGFloat(entry.span))
+        
+        let barBottom =
+        yOffset(for: entry)
+        + Self.rowHeight
+        + Self.rowSpacing
+        
+        storedOffset = CGSize(
+            width: -CGFloat(entry.startYear - minYear) * pointsPerYear,
+            height: min(0, viewportSize.height - barBottom)
+        )
+    }
+
+        /// Restores the default zoom level and scrolls back to the start.
+    func reset() {
+        pinchAnchor = nil
+        setScale(Self.defaultScale)
+        storedOffset = .zero
+    }
+    
+    /// Returns the entry whose bar contains a point in canvas coordinates.
+    ///
+    /// - Parameter point: A location relative to the visible canvas.
+    /// - Returns: The matching entry, or `nil` for empty space.
+    func entry(at point: CGPoint) -> TimelineEntry? {
+        let x = point.x - offset.width
+        let y = point.y - offset.height
+        
+        return entries.first { entry in
+            let originX = xOffset(for: entry)
+            let originY = yOffset(for: entry)
+            
+            return x >= originX
+            && x <= originX + width(for: entry)
+            && y >= originY
+            && y <= originY + Self.rowHeight
+        }
     }
 
     private func setScale(
