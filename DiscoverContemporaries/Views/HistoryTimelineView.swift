@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct HistoryTimelineView: View {
-
+    
     /// The view model responsible for timeline layout, selection, and zooming.
     @StateObject private var model: TimelineViewModel
-
+    
     /// Creates a historical timeline using the provided figures.
-        ///
-        /// - Parameters:
-        ///   - figures: The historical figures to display on the timeline.
-        ///   - highlightedID: An optional identifier of a figure to highlight.
+    ///
+    /// - Parameters:
+    ///   - figures: The historical figures to display on the timeline.
+    ///   - highlightedID: An optional identifier of a figure to highlight.
     init(
         figures: [HistoricalFigure],
         highlightedID: String? = nil
@@ -28,7 +28,7 @@ struct HistoryTimelineView: View {
             )
         )
     }
-
+    
     var body: some View {
         Group {
             if model.entries.isEmpty {
@@ -37,9 +37,9 @@ struct HistoryTimelineView: View {
                 GeometryReader { proxy in
                     VStack(spacing: 0) {
                         canvas
-
+                        
                         Divider()
-
+                        
                         TimelineFooter(
                             model: model,
                             availableWidth: proxy.size.width
@@ -52,20 +52,20 @@ struct HistoryTimelineView: View {
         .navigationTitle("Timeline")
         .navigationBarTitleDisplayMode(.inline)
     }
-
+    
     // Canvas
     private var canvas: some View {
-        ScrollView([.horizontal, .vertical]) {
+        GeometryReader { viewport in
             ZStack(alignment: .topLeading) {
                 ForEach(model.ticks) { tick in
                     let x = model.xOffset(forYear: tick.year)
-
+                    
                     Rectangle()
                         .fill(Color.black.opacity(0.08))
                         .frame(width: 1, height: model.contentHeight)
                         .offset(x: x)
                         .accessibilityHidden(true)
-
+                    
                     Text(tick.label)
                         .font(.caption2)
                         .foregroundStyle(Color.secondaryText)
@@ -78,8 +78,8 @@ struct HistoryTimelineView: View {
                     .frame(height: 0.1)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel("Timeline scale")
-//                    .accessibilityValue("From \(model.visibleStartYear) to \(model.visibleEndYear)")
-
+                    .accessibilityValue(model.visibleRangeText)
+                
                 ForEach(model.entries) { entry in
                     TimelineBar(
                         entry: entry,
@@ -100,13 +100,67 @@ struct HistoryTimelineView: View {
                 height: model.contentHeight,
                 alignment: .topLeading
             )
+            .offset(model.offset)
+            .frame(
+                width: viewport.size.width,
+                height: viewport.size.height,
+                alignment: .topLeading
+            )
+            .clipped()
+            .contentShape(Rectangle())
+            .simultaneousGesture(canvasGesture)
+            .overlay(alignment: .bottom) {
+                visibleRangeLabel
+            }
+            .onChange(of: viewport.size, initial: true) { _, size in
+                model.viewportSize = size
+            }
+            .animation(.easeInOut(duration: 0.2), value: model.selectedID)
         }
-        .simultaneousGesture(
-            MagnifyGesture()
-                .onChanged { model.pinchChanged($0.magnification) }
-                .onEnded { _ in model.pinchEnded() }
-        )
-        .animation(.easeInOut(duration: 0.2), value: model.selectedID)
+    }
+    
+    // Gesture
+    private var canvasGesture: some Gesture {
+        let zoom = MagnifyGesture()
+        .onChanged {
+            print("pinch", $0.magnification)   // temporary
+            model.pinchChanged($0.magnification, around: $0.startLocation)
+        }
+        .onEnded { _ in model.pinchEnded() }
+
+        let pan = DragGesture(minimumDistance: 8)
+        .onChanged {
+            print("pan", $0.translation)       // temporary
+            model.panChanged($0.translation)
+        }
+        .onEnded { _ in model.panEnded() }
+        
+        let doubleTap = SpatialTapGesture(count: 2)
+            .onEnded { value in
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    if let entry = model.entry(at: value.location) {
+                        model.zoom(to: entry)
+                    } else {
+                        model.reset()
+                    }
+                }
+            }
+        
+        return zoom
+            .simultaneously(with: pan)
+            .simultaneously(with: doubleTap)
+    }
+    
+    // Feedback
+    private var visibleRangeLabel: some View {
+        Text(model.visibleRangeText)
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(Color.primaryText)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(Color.white.opacity(0.9), in: Capsule())
+            .padding(.bottom, 8)
+            .accessibilityHidden(true)
     }
 }
 
@@ -175,11 +229,11 @@ private struct TimelineFooter: View {
             if let entry = model.selectedEntry {
                 SelectedFigureCard(entry: entry)
             } else {
-                Text("Tap a bar for details. Pinch or use the buttons to zoom.")
+                Text("Tap a bar for details. Pinch to zoom, drag to pan, double-tap a bar to focus it or empty space to reset.")
                     .font(.caption)
                     .foregroundStyle(Color.secondaryText)
                     .accessibilityLabel("Timeline instructions")
-                    .accessibilityValue("Tap a bar for details. Pinch or use the buttons to zoom.")
+                    .accessibilityValue("Tap a bar for details. Pinch to zoom, drag to pan, double-tap a bar to focus it or empty space to reset.")
             }
 
             if model.skippedCount > 0 {
