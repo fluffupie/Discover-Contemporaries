@@ -26,7 +26,7 @@ struct HistoricalFigure: Decodable, Identifiable, Hashable, Sendable {
     static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 
-    // MARK: - Display Values
+    // MARK: - Life Status
     /// The figure's life dates.
     var lifespanInfo: Lifespan {
         Lifespan(birthDate: birthDate, deathDate: deathDate)
