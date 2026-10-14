@@ -25,7 +25,7 @@ struct BookmarkedFigure: Codable, Identifiable, Hashable, Sendable {
 
     // MARK: - Creation
 
-    /// Creates a bookmark from a full figure.
+    /// Creates a bookmark from HistoricalFigure to capture a snapshot at save time ans support sorting via savedAt.
     ///
     /// - Parameters:
     ///   - figure: The figure being saved.
@@ -70,7 +70,7 @@ struct BookmarkedFigure: Codable, Identifiable, Hashable, Sendable {
             try c.decodeIfPresent(Date.self, forKey: .savedAt) ?? .distantPast
     }
     // MARK: - Identity
-
+    /// Define equality/hash based solely on id for stable identity in SwiftUI collections.
     static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
 
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
@@ -87,6 +87,7 @@ struct BookmarkedFigure: Codable, Identifiable, Hashable, Sendable {
 }
 
 // MARK: - Historical Figure Conversion
+/// Conversion back to HistoricalFigure for reuse in UI flows.
 extension BookmarkedFigure {
     var historicalFigure: HistoricalFigure {
         HistoricalFigure(
