@@ -44,7 +44,7 @@ enum ContinentFigureIDs {
 
     private static let africa: [String] = [
         "Q8023",  // Nelson Mandela
-        "Q635",  // Cleopatra
+        "Q635",  // Cleopatra VII
         "Q12154",  // Tutankhamun
         "Q1523",  // Ramesses II
         "Q40930",  // Nefertiti
@@ -81,10 +81,10 @@ enum ContinentFigureIDs {
         "Q7241",  // Rabindranath Tagore
         "Q30547",  // Mother Teresa
         "Q17293",  // 14th Dalai Lama
-        "Q9738",  // We Ze Tian
+        "Q9738",  // Wu Zetian
         "Q36014",  // Ho Chi Minh
         "Q131248",  // Lee Kuan Yew
-        "Q16574",  // chiang kai shek
+        "Q16574",  // Chiang Kai-shek
         "Q36740",  // Aung San Suu Kyi
         "Q8573",  // Sun Yat-sen
         "Q1316",  // Saddam Hussein
@@ -98,7 +98,7 @@ enum ContinentFigureIDs {
         "Q935",  // Isaac Newton
         "Q937",  // Albert Einstein
         "Q7186",  // Marie Curie
-        "Q517",  // Napoleon
+        "Q517",  // Napoleon Bonaparte
         "Q255",  // Ludwig van Beethoven
         "Q254",  // Wolfgang Amadeus Mozart
         "Q5582",  // Vincent van Gogh
