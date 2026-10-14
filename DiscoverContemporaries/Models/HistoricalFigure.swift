@@ -22,10 +22,11 @@ struct HistoricalFigure: Decodable, Identifiable, Hashable, Sendable {
     let imageName: String?
 
     // MARK: - Identity
+    /// Define equality/hash based solely on id for stable identity in SwiftUI collections.
     static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 
-    // MARK: - Life Status
+    // MARK: - Display Values
     /// The figure's life dates.
     var lifespanInfo: Lifespan {
         Lifespan(birthDate: birthDate, deathDate: deathDate)
