@@ -1,6 +1,13 @@
 import SwiftData
 import SwiftUI
 
+/// ## Tabs
+///
+/// | Tab | Destination | Purpose |
+/// | --- | --- | --- |
+/// | Home | ``HomeView`` | The main landing feed. |
+/// | Explore | ``ExploreView`` | Discover new figures. |
+/// | Saves | ``BookmarkView`` | Figures the user has saved. |
 struct ContentView: View {
     var body: some View {
         TabView {
@@ -25,10 +32,12 @@ struct ContentView: View {
                 Label("Saves", systemImage: "heart")
             }
         }
-        .tint(.black)
+        .tint(.primary)
     }
 }
 
+// MARK: - Preview Support
+/// Creates an in-memory SwiftData model container for use in previews.
 @MainActor
 private func makePreviewContainer() -> ModelContainer {
     let schema = Schema([])
@@ -40,6 +49,7 @@ private func makePreviewContainer() -> ModelContainer {
     }
 }
 
+/// Shared in-memory container injected into `ContentView` previews.
 @MainActor
 private let previewContainer: ModelContainer = makePreviewContainer()
 
