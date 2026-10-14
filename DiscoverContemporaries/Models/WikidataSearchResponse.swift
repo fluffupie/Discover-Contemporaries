@@ -25,6 +25,8 @@ struct WikidataSearchResult: Decodable, Identifiable, Hashable, Sendable {
     var imageURL: URL?
 
     /// Maps the JSON response keys to the corresponding properties.
+    /// Wikidata search results don't necessarily include portrait URLs.
+    /// By excluding imageURL from decoding, the application can populate it separately after retrieving additional information.
     private enum CodingKeys: String, CodingKey {
         case id, label, description
     }
