@@ -1,81 +1,81 @@
 import Combine
 import Foundation
+import OSLog
 
-/// Manages homepage figure selection, recent history, and figure search.
+/// Manages homepage figure selection, recent history and figure search.
 @MainActor
 final class HomeViewModel: ObservableObject {
-
     @Published var searchText = ""
     @Published private(set) var searchResults: [WikidataSearchResult] = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
 
-    private let defaultFigureIDs = [
+    /// The figures featured on the home screen, in display order.
+    private static let defaultFigureIDs = [
         "Q7259", // Ada Lovelace
         "Q762",  // Leonardo da Vinci
         "Q2831", // Michael Jackson
         "Q9682"  // Elizabeth II
     ]
 
-    /// Indicates whether the current search text contains a non-empty query.
+    /// The maximum number of recently viewed figures shown.
+    private static let recentLimit = 5
+
+    private var searchTask: Task<Void, Never>?
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "DiscoverContemporaries",
+        category: "Home"
+    )
+
+    /// Whether the search text contains a non-empty query.
     var hasSearchQuery: Bool {
         !trimmedSearchText.isEmpty
     }
 
     // MARK: - Homepage Figures
 
-    /// Returns the default homepage figures from the local SwiftData cache.
+    /// Returns the default homepage figures found in the cache, in the
+    /// predefined order. Figures not yet cached are skipped.
     ///
-    /// Figures are returned in the predefined homepage order.
-    ///
-    /// - Parameter cachedFigures: The historical figures currently stored in the local cache.
-    /// - Returns: The cached default historical figures.
-    func defaultFigures(
-        from cachedFigures: [CachedHistoricalFigure]
-    ) -> [HistoricalFigure] {
-        let figuresByID = Dictionary(
-            uniqueKeysWithValues: cachedFigures.map {
-                ($0.wikidataID, $0)
-            }
+    /// - Parameter cachedFigures: The figures currently in the local cache.
+    func defaultFigures(from cachedFigures: [CachedHistoricalFigure]) -> [HistoricalFigure] {
+        let byID = Dictionary(
+            cachedFigures.map { ($0.wikidataID, $0) },
+            uniquingKeysWith: { first, _ in first }
         )
 
-        return defaultFigureIDs.compactMap {
-            figuresByID[$0]?.historicalFigure
-        }
+        return Self.defaultFigureIDs.compactMap { byID[$0]?.historicalFigure }
     }
 
-    /// Returns up to five recently viewed historical figures.
+    /// Returns the most recently viewed figures, newest first.
     ///
-    /// Default homepage figures are excluded, and the remaining figures are
-    /// ordered from most recently viewed to least recently viewed.
+    /// Default homepage figures are excluded.
     ///
-    /// - Parameter cachedFigures: The historical figures currently stored in the local cache.
-    /// - Returns: Up to five recently viewed historical figures.
-    func recentlyViewedFigures(
-        from cachedFigures: [CachedHistoricalFigure]
-    ) -> [HistoricalFigure] {
+    /// - Parameter cachedFigures: The figures currently in the local cache.
+    func recentlyViewedFigures(from cachedFigures: [CachedHistoricalFigure]) -> [HistoricalFigure] {
         cachedFigures
-            .filter {
-                !defaultFigureIDs.contains($0.wikidataID)
-                    && $0.lastViewedAt != nil
+            .compactMap { cached -> (CachedHistoricalFigure, Date)? in
+                guard
+                    !Self.defaultFigureIDs.contains(cached.wikidataID),
+                    let viewedAt = cached.lastViewedAt
+                else { return nil }
+                return (cached, viewedAt)
             }
-            .sorted {
-                ($0.lastViewedAt ?? .distantPast)
-                    > ($1.lastViewedAt ?? .distantPast)
-            }
-            .prefix(5)
-            .map(\.historicalFigure)
+            .sorted { $0.1 > $1.1 }
+            .prefix(Self.recentLimit)
+            .map { $0.0.historicalFigure }
     }
 
     // MARK: - Search
 
-    /// Searches Wikidata for historical figures matching the current search text.
+    /// Searches Wikidata for the current search text.
     ///
-    /// Results from outdated requests are ignored if the search text changes
-    /// before the request completes.
+    /// Any search still running is cancelled, so only the latest one can
+    /// update the results.
     func searchFigures() {
-        let query = trimmedSearchText
+        searchTask?.cancel()
 
+        let query = trimmedSearchText
         guard !query.isEmpty else {
             clearSearch()
             return
@@ -84,36 +84,46 @@ final class HomeViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        WikidataAPI.fetchFigures(query: query) { [weak self] results in
-            guard let self else {
-                return
+        searchTask = Task { [weak self] in
+            do {
+                let results = try await WikidataAPI.fetchFigures(query: query)
+                try Task.checkCancellation()
+                self?.finishSearch(with: results)
+            } catch is CancellationError {
+                // Superseded by a newer search. The newer task owns the state.
+            } catch let error as URLError where error.code == .cancelled {
+                // Same, surfaced by URLSession.
+            } catch {
+                self?.failSearch(error)
             }
-
-            guard query == trimmedSearchText else {
-                return
-            }
-
-            searchResults = results
-            isLoading = false
-            errorMessage = results.isEmpty
-                ? "No figures found."
-                : nil
         }
     }
 
-    /// Clears the current search text, results, loading state, and error message.
+    /// Cancels any running search and clears the text, results and messages.
     func clearSearch() {
+        searchTask?.cancel()
         searchText = ""
         searchResults = []
         errorMessage = nil
         isLoading = false
     }
 
+    private func finishSearch(with results: [WikidataSearchResult]) {
+        searchResults = results
+        isLoading = false
+        errorMessage = results.isEmpty ? String(localized: "No figures found.") : nil
+    }
+
+    private func failSearch(_ error: Error) {
+        logger.error("Search failed: \(error.localizedDescription)")
+        searchResults = []
+        isLoading = false
+        errorMessage = String(localized: "Search failed. Check your connection and try again.")
+    }
+
     // MARK: - Helpers
 
     private var trimmedSearchText: String {
-        searchText.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

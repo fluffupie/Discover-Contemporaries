@@ -1,6 +1,4 @@
 import SwiftUI
-import Combine
-import Foundation
 import SwiftData
 
 struct ContemporariesView: View {
@@ -39,15 +37,9 @@ struct ContemporariesView: View {
         .background(Color.appBackground)
         .navigationTitle("Contemporaries")
         .navigationBarTitleDisplayMode(.inline)
-        .task {
-            let repository = FigureCacheRepository(
-                context: modelContext
-            )
-
-            model.load(
-                for: figure,
-                repository: repository
-            )
+        .task(id: figure.id) {
+            let repository = FigureCacheRepository(context: modelContext)
+            await model.load(for: figure, repository: repository)
         }
     }
 
@@ -79,21 +71,18 @@ struct ContemporariesView: View {
     }
 
     // MARK: - Error State
-
     private func errorView(message: String) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.yellow)
-                .imageScale(.large)
-
+        ContentUnavailableView {
+            Label("Unable to load contemporaries", systemImage: "exclamationmark.triangle.fill")
+        } description: {
             Text(message)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(Color.secondaryText)
+        } actions: {
+            Button("Try Again") {
+                Task {
+                    let repository = FigureCacheRepository(context: modelContext)
+                    await model.load(for: figure, repository: repository)
+                }
+            }
         }
-        .padding()
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Unable to load contemporaries")
-        .accessibilityValue(message)
-        .accessibilityHint("Try again later or navigate back.")
     }
 }

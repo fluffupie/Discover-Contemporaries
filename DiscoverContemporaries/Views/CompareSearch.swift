@@ -1,10 +1,9 @@
 import SwiftData
 import SwiftUI
 
-/// Displays a searchable list of historical figures that can be selected for comparison.
+/// Displays a searchable list of figures that can be selected for comparison.
 struct CompareSearchView: View {
-
-    /// The historical figure that will be compared with the selected search result.
+    /// The figure that will be compared with the selected search result.
     let firstFigure: HistoricalFigure
 
     @Environment(\.modelContext)
@@ -16,14 +15,21 @@ struct CompareSearchView: View {
     @State
     private var selectedFigure: HistoricalFigure?
 
+    /// `true` while a tapped result is being resolved.
+    @State
+    private var isResolving = false
+
+    @State
+    private var alertMessage: String?
+
     var body: some View {
         List {
             Section {
                 SearchField(searchText: $model.searchText)
                     .accessibilityLabel("Search figures to compare")
                     .accessibilityHint("Type a name and press Return to search")
-                    .onSubmit {model.performSearch()}
-                    .onChange(of: model.searchText) { model.searchTextChanged()}
+                    .onSubmit { model.performSearch() }
+                    .onChange(of: model.searchText) { model.searchTextChanged() }
 
                 if model.isLoading {
                     ProgressView("Searching…")
@@ -58,34 +64,58 @@ struct CompareSearchView: View {
                             .accessibilityValue(result.description ?? "No description")
                         }
                         .buttonStyle(.plain)
+                        .disabled(isResolving)
                     }
                 }
+                .opacity(isResolving ? 0.5 : 1)
             }
         }
         .navigationTitle("Search to Compare")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(
-            item: $selectedFigure
-        ) { figure in
+        .navigationDestination(item: $selectedFigure) { figure in
             ComparisonView(
                 firstFigure: firstFigure,
                 secondFigure: figure
             )
         }
+        .alert(
+            "Couldn't load figure",
+            isPresented: Binding(
+                get: { alertMessage != nil },
+                set: { if !$0 { alertMessage = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(alertMessage ?? "")
+        }
     }
 
-    private func select(
-        _ result: WikidataSearchResult
-    ) {
-        let repository = FigureCacheRepository(
-            context: modelContext
-        )
+    private func select(_ result: WikidataSearchResult) {
+        guard !isResolving else { return }
+        isResolving = true
 
-        model.resolveFigure(
-            from: result,
-            repository: repository
-        ) { figure in
-            selectedFigure = figure
+        let repository = FigureCacheRepository(context: modelContext)
+
+        Task {
+            defer { isResolving = false }
+
+            do {
+                if let figure = try await model.resolveFigure(
+                    from: result,
+                    repository: repository
+                ) {
+                    selectedFigure = figure
+                } else {
+                    alertMessage = "That figure couldn't be found on Wikidata."
+                }
+            } catch is CancellationError {
+                // The view went away. Not an error.
+            } catch let error as URLError where error.code == .cancelled {
+                // Same, surfaced by URLSession.
+            } catch {
+                alertMessage = error.localizedDescription
+            }
         }
     }
 }

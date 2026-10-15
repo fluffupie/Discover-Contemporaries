@@ -1,6 +1,7 @@
 import Combine
 import SwiftData
 import SwiftUI
+import OSLog
 
 // MARK: - Occupation View
 
@@ -11,9 +12,11 @@ struct OccupationView: View {
 
     /// Represents an occupation category available for exploration.
     struct Occupation: Identifiable {
-        let id: String /// The unique Wikidata identifier of the occupation.
+        /// The unique Wikidata identifier of the occupation.
+        let id: String // Identifiable requires an id property.
         let name: String
-        let systemImage: String /// The SF Symbol representing the occupation.
+        /// The SF Symbol representing the occupation.
+        let systemImage: String
     }
 
     /// The predefined occupation categories available for browsing.
@@ -104,9 +107,8 @@ private struct OccupationTopFiguresView: View {
     @Environment(\.modelContext)
     private var modelContext
 
-    /// The view model responsible for loading and managing occupation figures.
     @StateObject
-    private var model = OccupationTopFiguresViewModel()
+    private var model = SeededFiguresViewModel()
 
     var body: some View {
         Group {
@@ -143,13 +145,11 @@ private struct OccupationTopFiguresView: View {
         .background(Color.appBackground)
         .navigationTitle(occupation.name)
         .navigationBarTitleDisplayMode(.inline)
-        .task {
-            let repository = FigureCacheRepository(
-                context: modelContext
-            )
-
-            model.load(
-                for: occupation,
+        .task(id: occupation.id) {
+            let repository = FigureCacheRepository(context: modelContext)
+            await model.load(
+                key: occupation.id,
+                seededIDs: OccupationFigureSeeds.ids(for: occupation.id),
                 repository: repository
             )
         }
@@ -182,102 +182,91 @@ private struct OccupationTopFiguresView: View {
 
 // MARK: - View Model
 
+/// Manages loading and display state for an occupation's curated figures.
 @MainActor
 final class OccupationTopFiguresViewModel: ObservableObject {
+    /// Whether a load is in progress with nothing cached to show.
+    @Published private(set) var isLoading = false
 
-    @Published private(set)
-    var isLoading = false
+    /// The figures, in the seeded order.
+    @Published private(set) var figures: [HistoricalFigure] = []
 
-    @Published private(set)
-    var figures: [HistoricalFigure] = []
-
-    @Published private(set)
-    var errorMessage: String?
+    /// A message for the empty or failed state, or `nil`.
+    @Published private(set) var errorMessage: String?
 
     private var currentOccupationID: String?
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "DiscoverContemporaries",
+        category: "Occupations"
+    )
 
+    /// Loads the curated figures for an occupation.
+    ///
+    /// Cached figures appear immediately. Missing ones are fetched from
+    /// Wikidata, saved to SwiftData, and the list is reloaded in seeded order.
+    /// If the fetch fails, cached figures stay on screen.
+    ///
+    /// Call from `.task(id: occupation.id)` so a change of occupation cancels
+    /// the previous load.
     func load(
         for occupation: OccupationView.Occupation,
         repository: FigureCacheRepository
-    ) {
+    ) async {
         let occupationID = occupation.id
-
+        if currentOccupationID != occupationID {
+            figures = []
+        }
         currentOccupationID = occupationID
         errorMessage = nil
 
-        let seededIDs = OccupationFigureSeeds.ids(
-            for: occupationID
-        )
-
+        let seededIDs = OccupationFigureSeeds.ids(for: occupationID)
         guard !seededIDs.isEmpty else {
             figures = []
             isLoading = false
-            errorMessage = "No figures found."
+            errorMessage = String(localized: "No figures found.")
             return
         }
 
-        // 1. Load anything already stored in SwiftData.
-        let cachedFigures =
-            (try? repository.fetchFigures(
-                withIDs: seededIDs
-            )) ?? []
+        // 1. Show whatever is already cached.
+        let cached = (try? repository.fetchFigures(withIDs: seededIDs)) ?? []
+        figures = cached
 
-        // Show cached figures immediately.
-        figures = cachedFigures
+        let cachedIDs = Set(cached.map(\.id))
+        let missingIDs = seededIDs.filter { !cachedIDs.contains($0) }
 
-        // 2. Determine which seeded figures are missing.
-        let cachedIDs = Set(
-            cachedFigures.map(\.id)
-        )
-
-        let missingIDs = seededIDs.filter {
-            !cachedIDs.contains($0)
-        }
-
-        // 3. Nothing else needs to be downloaded.
         guard !missingIDs.isEmpty else {
             isLoading = false
             return
         }
 
-        // Only block the whole screen if there is
-        // nothing available locally yet.
-        isLoading = cachedFigures.isEmpty
+        // 2. Only block the screen when nothing is available locally.
+        isLoading = cached.isEmpty
 
-        // 4. Fetch only missing figures.
-        WikidataAPI.fetchFigures(
-            withIDs: missingIDs
-        ) { [weak self] fetchedFigures in
-            guard let self else {
-                return
-            }
+        do {
+            // 3. Fetch, cache, and reload in seeded order.
+            let fetched = try await WikidataAPI.fetchFiguresInBatches(withIDs: missingIDs)
+            try Task.checkCancellation()
 
-            guard currentOccupationID == occupationID else {
-                return
-            }
-
-            // 5. Cache downloaded figures.
             do {
-                try repository.saveAll(
-                    fetchedFigures
-                )
+                try repository.saveAll(fetched)
             } catch {
-                print(
-                    "Failed to cache occupation figures: \(error)"
-                )
+                logger.error("Failed to cache occupation figures: \(error.localizedDescription)")
             }
 
-            // 6. Reload from SwiftData in seed order.
-            let updatedFigures =
-                (try? repository.fetchFigures(
-                    withIDs: seededIDs
-                )) ?? []
-
-            figures = updatedFigures
+            figures = (try? repository.fetchFigures(withIDs: seededIDs)) ?? cached + fetched
             isLoading = false
-
-            if updatedFigures.isEmpty {
-                errorMessage = "No figures found."
+            if figures.isEmpty {
+                errorMessage = String(localized: "No figures found.")
+            }
+        } catch is CancellationError {
+            // Superseded or the view went away. Leave the state to the newer load.
+        } catch let error as URLError where error.code == .cancelled {
+            // Same, surfaced by URLSession.
+        } catch {
+            logger.error("Failed to load occupation figures: \(error.localizedDescription)")
+            isLoading = false
+            if cached.isEmpty {
+                errorMessage = String(localized: "Couldn't load figures. Check your connection and try again.")
             }
         }
     }

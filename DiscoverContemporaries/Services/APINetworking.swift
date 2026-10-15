@@ -1,284 +1,167 @@
 import Foundation
+import OSLog
+
+private nonisolated let networkLogger = Logger(subsystem: "a2.DiscoverContemporaries", category: "Wikidata")
 
 extension WikidataAPI {
-
     // MARK: - Generic Networking
 
-    /// Fetches and decodes a Wikidata response into the requested decodable type.
-    ///
-    /// The completion handler is called on the main actor.
+    /// Fetches and decodes a Wikidata response.
     ///
     /// - Parameters:
-    ///   - url: The URL of the Wikidata request.
+    ///   - url: The request URL.
     ///   - type: The response type to decode.
-    ///   - completion: A closure containing the decoded response, or `nil` if the request fails.
-    static func fetch<T: Decodable>(
+    ///   - session: The session to use. Defaults to `URLSession.shared`.
+    /// - Throws: ``WikidataError/badStatus(_:)`` for a non-2xx response,
+    ///   ``WikidataError/decodingFailed`` if decoding fails, or the underlying
+    ///   `URLError` (including cancellation).
+    nonisolated static func fetch<T: Decodable & Sendable>(
         url: URL,
         as type: T.Type,
-        completion: @escaping (T?) -> Void
+        session: URLSession = .shared
+    ) async throws -> T {
+        let (data, response) = try await session.data(for: request(for: url))
+
+        if let http = response as? HTTPURLResponse,
+           !(200...299).contains(http.statusCode) {
+            networkLogger.error("HTTP \(http.statusCode) for \(url.absoluteString, privacy: .public)")
+            throw WikidataError.badStatus(http.statusCode)
+        }
+
+        do {
+            return try JSONDecoder().decode(T.self, from: data)
+        } catch {
+            networkLogger.error("Decoding \(String(describing: T.self), privacy: .public) failed: \(error)")
+            throw WikidataError.decodingFailed
+        }
+    }
+
+    /// Callback version of ``fetch(url:as:session:)``.
+    ///
+    /// The completion runs on the main actor and receives `nil` on any failure.
+    @available(*, deprecated, message: "Use the async fetch(url:as:) instead.")
+    static func fetch<T: Decodable & Sendable>(
+        url: URL,
+        as type: T.Type,
+        completion: @escaping @MainActor (T?) -> Void
     ) {
-        URLSession.shared
-            .dataTask(
-                with: request(for: url)
-            ) { data, response, error in
-
-                if let error {
-                    print(
-                        "Wikidata request failed: \(error)"
-                    )
-
-                    Task { @MainActor in
-                        completion(nil)
-                    }
-
-                    return
-                }
-
-                if let httpResponse =
-                    response as? HTTPURLResponse
-                {
-                    guard
-                        (200...299)
-                            .contains(
-                                httpResponse.statusCode
-                            )
-                    else {
-                        print(
-                            "Wikidata HTTP error: \(httpResponse.statusCode)"
-                        )
-
-                        Task { @MainActor in
-                            completion(nil)
-                        }
-
-                        return
-                    }
-                }
-
-                guard let data else {
-                    Task { @MainActor in
-                        completion(nil)
-                    }
-
-                    return
-                }
-
-                do {
-                    let decoded =
-                        try JSONDecoder().decode(
-                            T.self,
-                            from: data
-                        )
-
-                    Task { @MainActor in
-                        completion(decoded)
-                    }
-
-                } catch {
-                    print(
-                        "Wikidata decoding failed: \(error)"
-                    )
-
-                    Task { @MainActor in
-                        completion(nil)
-                    }
-                }
-            }
-            .resume()
+        Task { @MainActor in
+            completion(try? await fetch(url: url, as: type))
+        }
     }
 
     // MARK: - URL Construction
 
-    /// Creates a Wikidata entity-search URL for the supplied query.
-    ///
-    /// - Parameter query: The search text used to find Wikidata entities.
-    /// - Returns: A configured search URL, or `nil` if the URL cannot be created.
-    static func makeSearchURL(
-        query: String
-    ) -> URL? {
-        var components =
-            URLComponents(
-                string: baseURL
-            )
-
-        components?.queryItems = [
-            URLQueryItem(
-                name: "action",
-                value: "wbsearchentities"
-            ),
-            URLQueryItem(
-                name: "search",
-                value: query
-            ),
-            URLQueryItem(
-                name: "language",
-                value: "en"
-            ),
-            URLQueryItem(
-                name: "format",
-                value: "json"
-            ),
-            URLQueryItem(
-                name: "type",
-                value: "item"
-            ),
-            URLQueryItem(
-                name: "limit",
-                value: "20"
-            )
-        ]
-
-        return components?.url
-    }
-
-    /// Creates a Wikidata entity-details URL for the supplied entity IDs and properties.
+    /// Creates a Wikidata entity-search URL.
     ///
     /// - Parameters:
-    ///   - ids: The Wikidata entity IDs to request.
-    ///   - properties: The Wikidata properties to include in the response.
-    ///   - languages: An optional language filter for returned labels.
-    /// - Returns: A configured entity URL, or `nil` if the URL cannot be created.
+    ///   - query: The search text. Surrounding whitespace is trimmed.
+    ///   - limit: The maximum number of results. Defaults to 20.
+    /// - Returns: The URL, or `nil` if `query` is blank or the URL can't be built.
+    static func makeSearchURL(query: String, limit: Int = 20) -> URL? {
+        let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty, var components = URLComponents(string: baseURL) else {
+            return nil
+        }
+
+        components.queryItems = [
+            URLQueryItem(name: "action", value: "wbsearchentities"),
+            URLQueryItem(name: "search", value: query),
+            URLQueryItem(name: "language", value: "en"),
+            URLQueryItem(name: "format", value: "json"),
+            URLQueryItem(name: "type", value: "item"),
+            URLQueryItem(name: "limit", value: String(limit))
+        ]
+
+        return components.url
+    }
+
+    /// Creates a Wikidata entity-details URL.
+    ///
+    /// - Parameters:
+    ///   - ids: The entity IDs to request.
+    ///   - properties: The `props` value, for example `"claims|labels"`.
+    ///   - languages: An optional language filter for labels and descriptions.
+    /// - Returns: The URL, or `nil` if `ids` is empty or the URL can't be built.
     static func makeEntitiesURL(
         ids: [String],
         properties: String,
         languages: String? = nil
     ) -> URL? {
-        var components =
-            URLComponents(
-                string: baseURL
-            )
-
-        var queryItems = [
-            URLQueryItem(
-                name: "action",
-                value: "wbgetentities"
-            ),
-            URLQueryItem(
-                name: "ids",
-                value: ids.joined(
-                    separator: "|"
-                )
-            ),
-            URLQueryItem(
-                name: "props",
-                value: properties
-            ),
-            URLQueryItem(
-                name: "format",
-                value: "json"
-            )
-        ]
-
-        if let languages {
-            queryItems.append(
-                URLQueryItem(
-                    name: "languages",
-                    value: languages
-                )
-            )
-        }
-
-        components?.queryItems = queryItems
-
-        return components?.url
-    }
-
-    /// Creates a URL request with the headers required for Wikidata requests.
-    ///
-    /// - Parameter url: The destination URL for the request.
-    /// - Returns: A configured URL request.
-    static func request(
-        for url: URL
-    ) -> URLRequest {
-        var request =
-            URLRequest(url: url)
-
-        request.setValue(
-            "DiscoverContemporaries/1.0 (student project)",
-            forHTTPHeaderField: "User-Agent"
-        )
-
-        request.setValue(
-            "application/json",
-            forHTTPHeaderField: "Accept"
-        )
-
-        return request
-    }
-
-    // MARK: - Wikimedia Image
-
-    /// Creates a Wikimedia Commons image URL for the specified file name.
-    ///
-    /// - Parameter fileName: The Wikimedia Commons file name.
-    /// - Returns: A URL for a 500-pixel-wide image, or `nil` if the file name cannot be encoded.
-    nonisolated static func commonsImageURL(
-        for fileName: String
-    ) -> URL? {
-        guard
-            let encodedFileName =
-                fileName.addingPercentEncoding(
-                    withAllowedCharacters:
-                        .urlPathAllowed
-                )
-        else {
+        guard !ids.isEmpty, var components = URLComponents(string: baseURL) else {
             return nil
         }
 
-        return URL(
-            string:
-                "https://commons.wikimedia.org/wiki/Special:FilePath/\(encodedFileName)?width=500"
-        )
+        var queryItems = [
+            URLQueryItem(name: "action", value: "wbgetentities"),
+            URLQueryItem(name: "ids", value: ids.joined(separator: "|")),
+            URLQueryItem(name: "props", value: properties),
+            URLQueryItem(name: "format", value: "json")
+        ]
+
+        if let languages {
+            queryItems.append(URLQueryItem(name: "languages", value: languages))
+        }
+
+        components.queryItems = queryItems
+        return components.url
+    }
+
+    /// Creates a request with the headers Wikimedia requires.
+    ///
+    /// - Parameter url: The destination URL.
+    nonisolated static func request(for url: URL) -> URLRequest {
+        var request = URLRequest(url: url, timeoutInterval: 20)
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        return request
+    }
+
+    /// Wikimedia asks for an app name plus a way to contact you.
+    private nonisolated static let userAgent = "DiscoverContemporaries/1.0 (student project)"
+
+    // MARK: - Wikimedia Image
+
+    /// Creates a Wikimedia Commons URL for a file, 500 pixels wide.
+    ///
+    /// - Parameter fileName: The Commons file name.
+    /// - Returns: The URL, or `nil` if the name can't be encoded.
+    nonisolated static func commonsImageURL(for fileName: String) -> URL? {
+        guard let encoded = fileName.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            return nil
+        }
+
+        return URL(string: "https://commons.wikimedia.org/wiki/Special:FilePath/\(encoded)?width=500")
     }
 
     // MARK: - Date Parsing
 
     /// Converts a Wikidata time string into a `Date`.
     ///
-    /// - Parameter time: A Wikidata time value such as `+1452-04-15T00:00:00Z`.
-    /// - Returns: The parsed date, or `nil` if the value cannot be converted.
-    static func parseWikidataTime(
-        _ time: String
-    ) -> Date? {
-        let trimmed =
-            time.hasPrefix("+")
-            ? String(
-                time.dropFirst()
-            )
-            : time
+    /// The date is the start of that day in the device's time zone, which
+    /// matches how the seed data is parsed. Wikidata marks unknown month or
+    /// day parts as `00`, and those are read as `01`, so `+1564-00-00T00:00:00Z`
+    /// becomes 1 January 1564.
+    ///
+    /// - Parameter time: A value such as `+1452-04-15T00:00:00Z`.
+    /// - Returns: The date, or `nil` for BCE dates and malformed values.
+    nonisolated static func parseWikidataTime(_ time: String) -> Date? {
+        guard !time.hasPrefix("-") else { return nil }  // BCE
 
-        guard
-            let datePart =
-                trimmed
-                    .split(
-                        separator: "T"
-                    )
-                    .first
-        else {
+        let datePart = time.drop(while: { $0 == "+" }).prefix { $0 != "T" }
+        let parts = datePart.split(separator: "-", omittingEmptySubsequences: false)
+
+        guard parts.count == 3,
+              let year = Int(parts[0]), year >= 1,
+              let month = Int(parts[1]),
+              let day = Int(parts[2])
+        else { return nil }
+
+        let components = DateComponents(year: year, month: max(month, 1), day: max(day, 1))
+        guard (1...12).contains(components.month!), (1...31).contains(components.day!) else {
             return nil
         }
 
-        return wikidataDateFormatter.date(
-            from: String(datePart)
-        )
+        return Calendar(identifier: .gregorian).date(from: components)
     }
-
-    private static let wikidataDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-
-        formatter.locale =
-            Locale(
-                identifier: "en_US_POSIX"
-            )
-
-        formatter.calendar =
-            Calendar(
-                identifier: .gregorian
-            )
-
-        formatter.dateFormat =
-            "yyyy-MM-dd"
-
-        return formatter
-    }()
 }

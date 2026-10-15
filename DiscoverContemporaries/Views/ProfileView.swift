@@ -129,41 +129,32 @@ struct ProfileView: View {
         }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
+        .task(id: model.bookmarkMessage) {
+            guard model.bookmarkMessage != nil else { return }
+            try? await Task.sleep(for: .seconds(1.8))
+            model.clearBookmarkMessage()
+        }
+        .animation(.default, value: model.bookmarkMessage)
         .toolbar {
             ToolbarItem(
                 placement: .topBarTrailing
             ) {
                 Button {
-                    Task {
-                        await model.toggleBookmark()
-
-                        try? await Task.sleep(
-                            for: .seconds(1.8)
-                        )
-
-                        model.clearBookmarkMessage()
-                    }
+                    Task { await model.toggleBookmark() }
                 } label: {
-                    Image(
-                        systemName: model.isBookmarked
-                            ? "heart.fill"
-                            : "heart"
-                    )
-                    .foregroundStyle(
-                        model.isBookmarked
-                            ? Color.red
-                            : Color.primary
-                    )
-                    .font(.subheadline.weight(.semibold))
-                    .accessibilityLabel(
-                        model.isBookmarked
-                            ? "Remove from bookmarks"
-                            : "Save to bookmarks"
-                    )
-                    .accessibilityHint(
-                        model.isBookmarked ? "Removes this figure from your bookmarks" : "Saves this figure to your bookmarks"
-                    )
+                    Image(systemName: model.isBookmarked ? "heart.fill" : "heart")
+                        .foregroundStyle(model.isBookmarked ? Color.red : Color.primary)
+                        .font(.subheadline.weight(.semibold))
+                        .accessibilityLabel(
+                            model.isBookmarked ? "Remove from bookmarks" : "Save to bookmarks"
+                        )
+                        .accessibilityHint(
+                            model.isBookmarked
+                                ? "Removes this figure from your bookmarks"
+                                : "Saves this figure to your bookmarks"
+                        )
                 }
+                .disabled(model.isUpdatingBookmark)
             }
 
             ToolbarItem(
@@ -183,10 +174,9 @@ struct ProfileView: View {
             }
         }
         .task {
-            model.load(
-                context: modelContext
-            )
-
+            await model.load(context: modelContext)
+        }
+        .task {
             await model.loadBookmarkState()
         }
     }

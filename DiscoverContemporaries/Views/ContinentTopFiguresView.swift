@@ -5,8 +5,7 @@ struct ContinentTopFiguresView: View {
     /// The continent whose historical figures are being displayed.
     let continent: Continent
 
-    /// The view model responsible for loading and managing historical figures.
-    @StateObject private var model = ContinentTopFiguresViewModel()
+    @StateObject private var model = SeededFiguresViewModel()
 
     /// The SwiftData model context used to initialise the cache repository.
     @Environment(\.modelContext)
@@ -47,13 +46,11 @@ struct ContinentTopFiguresView: View {
         .background(Color.appBackground)
         .navigationTitle(continent.name)
         .navigationBarTitleDisplayMode(.inline)
-        .task {
-            let repository = FigureCacheRepository(
-                context: modelContext
-            )
-
-            model.load(
-                for: continent,
+        .task(id: continent.id) {
+            let repository = FigureCacheRepository(context: modelContext)
+            await model.load(
+                key: continent.id,
+                seededIDs: ContinentFigureIDs.ids(for: continent.id),
                 repository: repository
             )
         }
