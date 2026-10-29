@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>a2.DiscoverContemporaries</string>
+	<string>com.ninabasically.DiscoverContemporaries</string>
 	<key>PROJECT_ID</key>
 	<string>discover-contemporaries</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:814047762449:ios:4c2b6455cebc611e31f9b0</string>
+	<string>1:814047762449:ios:55d9b89406e7553f31f9b0</string>
 </dict>
 </plist>
