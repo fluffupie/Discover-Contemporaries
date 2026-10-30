@@ -66,4 +66,56 @@ extension WikidataAPI {
             return human
         }
     }
+    
+    struct SparqlResponse: Decodable {
+        struct Head: Decodable { let vars: [String] }
+        struct Results: Decodable {
+            struct BindingValue: Decodable { let type: String; let value: String }
+            struct Binding: Decodable {
+                let personLabel: BindingValue?
+                let countryLabel: BindingValue?
+            }
+            let bindings: [Binding]
+        }
+        let head: Head
+        let results: Results
+    }
+
+    static func fetchBirthCountry(forID id: String, session: URLSession = .shared) async throws -> String? {
+        let sparql = """
+        SELECT ?person ?personLabel ?countryLabel WHERE {
+          VALUES ?person { wd:\(id) }
+          ?person wdt:P19 ?birthPlace.
+          OPTIONAL { ?birthPlace wdt:P17 ?countryDirect. }
+          OPTIONAL {
+            ?birthPlace (wdt:P131)* ?admin.
+            ?admin wdt:P17 ?countryViaAdmin.
+          }
+          BIND(COALESCE(?countryDirect, ?countryViaAdmin) AS ?country)
+          SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+        }
+        LIMIT 1
+        """
+
+        guard var components = URLComponents(string: "https://query.wikidata.org/sparql") else {
+            throw WikidataError.invalidURL
+        }
+        components.queryItems = [
+            URLQueryItem(name: "query", value: sparql),
+            URLQueryItem(name: "format", value: "json")
+        ]
+        guard let url = components.url else { throw WikidataError.invalidURL }
+
+        var request = URLRequest(url: url, timeoutInterval: 20)
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("application/sparql-results+json", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await session.data(for: request)
+        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+            throw WikidataError.badStatus(http.statusCode)
+        }
+
+        let decoded = try JSONDecoder().decode(SparqlResponse.self, from: data)
+        return decoded.results.bindings.first?.countryLabel?.value
+    }
 }

@@ -110,6 +110,14 @@ final class ProfileViewModel: ObservableObject {
 
             // A failed place lookup shouldn't discard the dates and portrait.
             var placeName: String?
+            var countryName: String?
+            if let birthPlaceID = details.birthPlaceID {
+
+                // Option B: Use your new SPARQL helper to get the country
+                countryName = try? await WikidataAPI.fetchBirthCountry(forID: figureID)
+            }
+
+            
             if figure.birthPlace == nil, let placeID = details.birthPlaceID {
                 placeName = try? await WikidataAPI.fetchEntityLabel(forID: placeID)
             }
@@ -122,7 +130,7 @@ final class ProfileViewModel: ObservableObject {
                 name: figure.name,
                 descriptionText: nil,
                 gender: nil,
-                birthPlace: placeName,
+                birthPlace: countryName,
                 birthDate: details.birthDate,
                 deathDate: details.deathDate,
                 occupations: [],

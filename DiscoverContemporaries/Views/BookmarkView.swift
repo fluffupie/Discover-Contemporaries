@@ -29,6 +29,17 @@ struct BookmarkView: View {
         .refreshable {
             await model.refresh()
         }
+        .toolbar {
+            #if DEBUG
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
+                    CachedFiguresDebugView()
+                } label: {
+                    Image(systemName: "tray.full")
+                }
+            }
+            #endif
+        }
     }
 
     // MARK: - Saved Figures List

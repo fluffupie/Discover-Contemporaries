@@ -118,7 +118,7 @@ extension WikidataAPI {
     }
 
     /// Wikimedia asks for an app name plus a way to contact you.
-    private nonisolated static let userAgent = "DiscoverContemporaries/1.0 (student project)"
+    nonisolated static let userAgent = "DiscoverContemporaries/1.0"
 
     // MARK: - Wikimedia Image
 

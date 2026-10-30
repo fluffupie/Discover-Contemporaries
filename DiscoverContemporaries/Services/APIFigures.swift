@@ -2,7 +2,7 @@ import Foundation
 import OSLog
 
 private let wikidataLogger = Logger(
-    subsystem: "a2.DiscoverContemporaries",
+    subsystem: "com.ninabasically.DiscoverContemporaries",
     category: "Wikidata"
 )
 

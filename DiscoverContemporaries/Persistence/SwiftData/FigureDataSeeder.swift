@@ -2,9 +2,6 @@ import Foundation
 import OSLog
 import SwiftData
 
-/// Logger for recording errors and warnings during figure seeding.
-private let seedLogger = Logger(subsystem: "a2.DiscoverContemporaries", category: "Seeding")
-
 /// Seeds the local SwiftData cache with bundled historical figures.
 ///
 /// Uses `@MainActor` to ensure SwiftData operations are performed on the main actor.
@@ -134,9 +131,6 @@ enum FigureDataSeeder {
             guard let text, !text.isEmpty else { return nil }
 
             guard let date = formatter.date(from: text) else {
-                seedLogger.warning(
-                    "Seed \(id, privacy: .public): unparseable date '\(text, privacy: .public)'"
-                )
                 return nil
             }
             return date

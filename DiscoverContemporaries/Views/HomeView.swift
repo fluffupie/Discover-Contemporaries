@@ -14,20 +14,52 @@ import SwiftUI
 struct HomeView: View {
     /// The SwiftData model context used to seed historical figures.
     @Environment(\.modelContext) private var modelContext
-    
+
     /// The view model responsible for search and homepage content.
     @StateObject private var model: HomeViewModel
 
     /// Historical figures retrieved from SwiftData, sorted by name.
     @Query(sort: \CachedHistoricalFigure.name)
     private var cachedFigures: [CachedHistoricalFigure]
+    @State private var searchText: String = ""
 
     init(model: HomeViewModel? = nil) {
         _model = StateObject(
             wrappedValue: model ?? HomeViewModel()
         )
     }
-    
+
+    // MARK: - Header
+
+    private struct HeaderView: View {
+
+        var body: some View {
+            VStack(
+                alignment: .leading,
+                spacing: 10
+            ) {
+                Text(
+                    "Who lived at\nthe same time?"
+                )
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .fontDesign(.serif)
+                .foregroundStyle(Color.black.opacity(0.9))
+                .multilineTextAlignment(.leading)
+                .accessibilityAddTraits(.isHeader)
+
+                Text(
+                    "Explore history through overlapping lifespans."
+                )
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundStyle(Color.black.opacity(0.65))
+                .padding(.top, 2)
+            }
+            .padding(.bottom, 4)
+        }
+    }
+
     private var featuredFigures: [HistoricalFigure] {
         let figuresByID = Dictionary(
             uniqueKeysWithValues: cachedFigures.map {
@@ -48,10 +80,10 @@ struct HomeView: View {
     }
 
     /// When a search query is active, search results replace the
-        /// default exploration and recently viewed sections.
-        ///
-        /// Otherwise, the screen displays cached historical figures
-        /// and a recently viewed section when applicable.
+    /// default exploration and recently viewed sections.
+    ///
+    /// Otherwise, the screen displays cached historical figures
+    /// and a recently viewed section when applicable.
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(
@@ -59,11 +91,6 @@ struct HomeView: View {
                 spacing: 24
             ) {
                 HeaderView()
-                
-                SearchField(searchText: $model.searchText)
-                    .onSubmit {
-                        model.searchFigures()
-                    }
 
                 if model.hasSearchQuery {
                     SearchResultsSection(
@@ -72,7 +99,7 @@ struct HomeView: View {
                         results: model.searchResults
                     )
                 } else {
-                    
+
                     let defaultFigures = model.defaultFigures(
                         from: cachedFigures
                     )
@@ -80,24 +107,20 @@ struct HomeView: View {
                     let exploreFigures = defaultFigures.filter {
                         !FeaturedFigureSeeds.ids.contains($0.id)
                     }
-                    
-                    
 
                     FeaturedFiguresSection(figures: featuredFigures)
 
                     ExploreFiguresSection(figures: exploreFigures)
 
-                let recentFigures = model.recentlyViewedFigures(
-                    from: cachedFigures
-                )
-
-                if !recentFigures.isEmpty {
-                    RecentlyViewedSection(
-                        figures: recentFigures
+                    let recentFigures = model.recentlyViewedFigures(
+                        from: cachedFigures
                     )
-                }
-                    
-                    
+
+                    if !recentFigures.isEmpty {
+                        RecentlyViewedSection(
+                            figures: recentFigures
+                        )
+                    }
                 }
             }
             .padding(.horizontal, 22)
@@ -106,6 +129,13 @@ struct HomeView: View {
         }
         .background(Color.appBackground)
         .navigationTitle("Home")
+        .searchable(text: $model.searchText, prompt: "Search for a figure...")
+        .onSubmit(of: .search) {
+            model.searchFigures()
+        }
+        // todo: .textInputAutocapitalization(.words)
+        //        .autocorrectionDisabled()
+        //        .submitLabel(.search)
         .navigationBarTitleDisplayMode(.inline)
         .task {
             setupHome()
@@ -114,11 +144,11 @@ struct HomeView: View {
 
     // MARK: - Setup
 
-        /// Seeds the local SwiftData cache with default historical figures
-        /// when required.
-        ///
-        /// Uses ``FigureDataSeeder`` to populate the cache and logs
-        /// an error if seeding fails.
+    /// Seeds the local SwiftData cache with default historical figures
+    /// when required.
+    ///
+    /// Uses ``FigureDataSeeder`` to populate the cache and logs
+    /// an error if seeding fails.
     private func setupHome() {
         do {
             try FigureDataSeeder.seedIfNeeded(
@@ -128,6 +158,27 @@ struct HomeView: View {
             print(
                 "Failed to seed figures: \(error)"
             )
+        }
+    }
+}
+
+// MARK: - Featured Figures
+
+private struct FeaturedFiguresSection: View {
+
+    let figures: [HistoricalFigure]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Featured figures")
+                .font(.headline)
+                .foregroundStyle(Color.primaryText)
+
+            PageView(figures: figures)
+                .aspectRatio(3 / 2, contentMode: .fit)
+                .clipShape(
+                    RoundedRectangle(cornerRadius: 12)
+                )
         }
     }
 }
@@ -151,6 +202,57 @@ private struct ExploreFiguresSection: View {
             DefaultCachedFiguresGrid(
                 figures: figures
             )
+        }
+    }
+}
+
+// MARK: - Default Figures on Homepage
+private struct DefaultCachedFiguresGrid: View {
+
+    /// The historical figures displayed in the grid.
+    let figures: [HistoricalFigure]
+
+    /// The user's preferred Dynamic Type size.
+    @Environment(\.dynamicTypeSize)
+    private var dynamicTypeSize
+
+    /// The adaptive grid layout for historical figure cards.
+    ///
+    /// Displays two columns at standard text sizes and
+    /// one column at accessibility text sizes.
+    private var columns: [GridItem] {
+        let count = dynamicTypeSize.isAccessibilitySize ? 1 : 2
+
+        return Array(
+            repeating: GridItem(.flexible(), spacing: 12),
+            count: count
+        )
+    }
+
+    var body: some View {
+        if figures.isEmpty {
+            EmptySearchView()
+        } else {
+            LazyVGrid(
+                columns: columns,
+                spacing: 12
+            ) {
+                ForEach(figures) { figure in
+                    NavigationLink {
+                        ProfileView(
+                            figure: figure
+                        )
+                    } label: {
+                        FigureCard(
+                            figure: figure
+                        )
+                        .accessibilityHint(
+                            "Opens historical figure profile"
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
     }
 }
@@ -190,7 +292,9 @@ private struct RecentlyViewedSection: View {
                             )
                             .accessibilityElement(children: .combine)
                             .accessibilityLabel(figure.name)
-                            .accessibilityValue(figure.descriptionText ?? figure.name)
+                            .accessibilityValue(
+                                figure.descriptionText ?? figure.name
+                            )
                             .accessibilityHint("Opens profile")
                         }
                         .buttonStyle(.plain)
@@ -281,7 +385,9 @@ private struct SearchResultsSection: View {
                 EmptySearchView()
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel("No matching figures")
-                    .accessibilityHint("Try searching by name, role, era, or lifespan.")
+                    .accessibilityHint(
+                        "Try searching by name, role, era, or lifespan."
+                    )
 
             } else {
                 VStack(spacing: 12) {
@@ -293,91 +399,6 @@ private struct SearchResultsSection: View {
                 }
             }
         }
-    }
-}
-
-// MARK: - Default Figures on Homepage
-
-
-private struct DefaultCachedFiguresGrid: View {
-
-    /// The historical figures displayed in the grid.
-    let figures: [HistoricalFigure]
-
-    /// The user's preferred Dynamic Type size.
-    @Environment(\.dynamicTypeSize)
-    private var dynamicTypeSize
-
-    /// The adaptive grid layout for historical figure cards.
-    ///
-    /// Displays two columns at standard text sizes and
-    /// one column at accessibility text sizes.
-    private var columns: [GridItem] {
-        let count = dynamicTypeSize.isAccessibilitySize ? 1 : 2
-
-        return Array(
-            repeating: GridItem(.flexible(), spacing: 12),
-            count: count
-        )
-    }
-
-    var body: some View {
-        if figures.isEmpty {
-            EmptySearchView()
-        } else {
-            LazyVGrid(
-                columns: columns,
-                spacing: 12
-            ) {
-                ForEach(figures) { figure in
-                    NavigationLink {
-                        ProfileView(
-                            figure: figure
-                        )
-                    } label: {
-                        FigureCard(
-                            figure: figure
-                        )
-                        .accessibilityHint(
-                            "Opens historical figure profile"
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-    }
-}
-
-
-// MARK: - Header
-
-private struct HeaderView: View {
-
-    var body: some View {
-        VStack(
-            alignment: .leading,
-            spacing: 10
-        ) {
-            Text(
-                "Who lived at\nthe same time?"
-            )
-            .font(.largeTitle)
-            .fontWeight(.bold)
-            .fontDesign(.serif)
-            .foregroundStyle(Color.black.opacity(0.9))
-            .multilineTextAlignment(.leading)
-            .accessibilityAddTraits(.isHeader)
-
-            Text(
-                "Explore history through overlapping lifespans."
-            )
-            .font(.subheadline)
-            .fontWeight(.medium)
-            .foregroundStyle(Color.black.opacity(0.65))
-            .padding(.top, 2)
-        }
-        .padding(.bottom, 4)
     }
 }
 
@@ -422,25 +443,3 @@ private struct WikidataSearchResultRow: View {
         .buttonStyle(.plain)
     }
 }
-
-// MARK: - Featured Figures
-
-private struct FeaturedFiguresSection: View {
-
-    let figures: [HistoricalFigure]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Featured figures")
-                .font(.headline)
-                .foregroundStyle(Color.primaryText)
-
-            PageView(figures: figures)
-                .aspectRatio(3 / 2, contentMode: .fit)
-                .clipShape(
-                    RoundedRectangle(cornerRadius: 12)
-                )
-        }
-    }
-}
-

@@ -13,7 +13,7 @@ final class HomeViewModel: ObservableObject {
     /// The figures featured on the home screen, in display order.
     private static let defaultFigureIDs = [
         "Q7259", // Ada Lovelace
-        "Q762",  // Leonardo da Vinci
+        "Q5582",  // Vincent van Gogh (Q5582)
         "Q2831", // Michael Jackson
         "Q9682"  // Elizabeth II
     ]
@@ -77,7 +77,6 @@ final class HomeViewModel: ObservableObject {
 
         let query = trimmedSearchText
         guard !query.isEmpty else {
-            clearSearch()
             return
         }
 
@@ -100,13 +99,13 @@ final class HomeViewModel: ObservableObject {
     }
 
     /// Cancels any running search and clears the text, results and messages.
-    func clearSearch() {
-        searchTask?.cancel()
-        searchText = ""
-        searchResults = []
-        errorMessage = nil
-        isLoading = false
-    }
+//    func clearSearch() {
+//        searchTask?.cancel()
+//        searchText = ""
+//        searchResults = []
+//        errorMessage = nil
+//        isLoading = false
+//    }
 
     private func finishSearch(with results: [WikidataSearchResult]) {
         searchResults = results

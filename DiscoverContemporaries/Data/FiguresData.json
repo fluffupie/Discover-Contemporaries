@@ -137,6 +137,22 @@
       "movements": [],
       "imageName": "marie-curie",
       "contemporaries": []
+    },
+    {
+      "id": "Q5582",
+      "name": "Vincent van Gogh",
+      "descriptionText": "Vincent Willem van Gogh was a Dutch Post-Impressionist painter who is among the most famous and influential figures in the history of Western art. In just over a decade he created about 2,100 artworks, including around 860 oil paintings, most of them in the last two years of his life.",
+      "gender": "Male",
+      "birthDate": "1853-03-30",
+      "deathDate": "1890-07-29",
+      "birthPlace": "Zundert",
+      "occupations": [
+        "Painter",
+        "Art Dealer"
+      ],
+      "movements": [],
+      "imageName": "vincent-van-gogh",
+      "contemporaries": []
     }
   ]
 }
